@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>台北南區勤前照片</title>
+  <style>
+    .upload-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+    .preview {
+      width: 120px;
+      height: auto;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>台北南區勤前照片（請選擇大樓別）</h2>
+
+  <select name="building" id="building">
+    <option value="松山金融">松山金融</option>
+    <option value="前瞻金融">前瞻金融</option>
+    <option value="全球民權">全球民權</option>
+    <option value="產物大樓">產物大樓</option>
+    <option value="芷英大樓">芷英大樓</option>
+    <option value="華航大樓">華航大樓</option>
+    <option value="南京科技">南京科技</option>
+    <option value="互助營造">互助營造</option>
+    <option value="摩天大樓">摩天大樓</option>
+    <option value="新莊農會">新莊農會</option>
+    <option value="儒鴻企業">儒鴻企業</option>
+    <option value="新板傑仕堡">新板傑仕堡</option>
+    <option value="新板金融">新板金融</option>
+    <option value="桃園金融">桃園金融</option>
+    <option value="新竹大樓">新竹大樓</option>
+    <option value="竹科大樓">竹科大樓</option>
+    <option value="頭份大樓">頭份大樓</option>
+  </select>
+  <br><br>
+
+  <!-- 四組上傳欄位 -->
+  <div class="upload-row">
+    <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview1')">
+    <img id="preview1" class="preview" src="">
+    <span class="note-label">備註：勤前照片</span>
+    <button onclick="uploadImage(this, 'preview1')">上傳圖片1</button>
+  </div>
+
+  <div class="upload-row">
+    <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview2')">
+    <img id="preview2" class="preview" src="">
+    <span class="note-label">備註：勤前照片</span>
+    <button onclick="uploadImage(this, 'preview2')">上傳圖片2</button>
+  </div>
+
+  <div class="upload-row">
+    <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview3')">
+    <img id="preview3" class="preview" src="">
+    <span class="note-label">備註：勤前照片</span>
+    <button onclick="uploadImage(this, 'preview3')">上傳圖片3</button>
+  </div>
+
+  <div class="upload-row">
+    <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview4')">
+    <img id="preview4" class="preview" src="">
+    <span class="note-label">備註：勤前指示單</span>
+    <button onclick="uploadImage(this, 'preview4')">上傳圖片4</button>
+  </div>
+
+  <script>
+    function previewImage(input, previewId) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById(previewId).src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadImage(button, previewId) {
+      const row = button.parentElement;
+      const fileInput = row.querySelector('input[type="file"]');
+      const noteLabel = row.querySelector('.note-label');
+      const building = document.getElementById('building').value;
+      const file = fileInput.files[0];
+      const note = noteLabel.textContent.replace('備註：', '').trim();
+
+      if (!file || !building) {
+        alert('請選擇建築物與圖片');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('building', building);
+      formData.append('note', note);
+
+      fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+
+        // ✅ 清空預覽與檔案選擇
+        document.getElementById(previewId).src = '';
+        fileInput.value = '';
+      })
+      .catch(err => {
+        console.error('上傳失敗', err);
+        alert('圖片上傳失敗');
+      });
+    }
+  </script>
+
+<h3>勤前照片上傳預覽</h3>
+<label for="previewDate">選擇日期：</label>
+<input type="date" id="previewDate" onchange="goToPreviewDate()">
+
+<script>
+  function goToPreviewDate() {
+    const date = document.getElementById('previewDate').value;
+    if (date) {
+      window.location.href = '/gallery?date=' + date;
+    }
+  }
+</script>
+
+<h2>勤前照片上傳統計查詢</h2>
+<label for="month">選擇月份：</label>
+<input type="month" id="month" onchange="filterByMonth()" value="2025-10">
+<script>
+  function filterByMonth() {
+    const month = document.getElementById('month').value;
+    window.location.href = '/stats?month=' + month;
+  }
+</script>
+
+</body>
+</html>
