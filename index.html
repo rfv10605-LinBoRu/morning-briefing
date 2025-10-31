@@ -221,17 +221,15 @@
 <input type="date" id="previewDate" onchange="goToPreviewDate()">
 
 <script>
-function previewImage(input, previewId) {
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      document.getElementById(previewId).src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+  function goToPreviewDate() {
+    const date = document.getElementById('previewDate').value;
+    if (date) {
+      window.location.href = '/gallery?date=' + date; // ✅ 跳轉到預覽頁面
+    }
   }
-}
+</script>
 
+<script>
 function uploadImage(button, previewId) {
   const row = button.parentElement;
   const fileInput = row.querySelector('input[type="file"]');
@@ -257,7 +255,9 @@ function uploadImage(button, previewId) {
   .then(res => res.json())
   .then(data => {
     alert(data.message);
-    row.setAttribute('data-filename', data.filename); // ✅ 儲存檔名供刪除使用
+
+    const filename = data.filename; // ✅ 接收後端回傳的檔名
+    row.setAttribute('data-filename', filename); // ✅ 儲存到 DOM 供刪除使用
     document.getElementById(previewId).src = '';
     fileInput.value = '';
   })
@@ -269,7 +269,7 @@ function uploadImage(button, previewId) {
 
 function deleteImage(button) {
   const row = button.parentElement;
-  const filename = row.getAttribute('data-filename'); // ✅ 讀取儲存的檔名
+  const filename = row.getAttribute('data-filename'); // ✅ 例如：2025-10-31/1761898282013.jpg
 
   if (!filename) {
     alert('尚未上傳圖片，無法刪除');
@@ -293,8 +293,6 @@ function deleteImage(button) {
     alert('圖片刪除失敗');
   });
 }
-
-
 </script>
 
 <h2>勤前照片上傳統計查詢</h2>
