@@ -105,27 +105,31 @@
     <img id="preview1" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
     <button onclick="uploadImage(this, 'preview1')">上傳圖片1</button>
+    <button onclick="deleteImage(this)">刪除圖片1</button>
   </div>
 
   <div class="upload-row">
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview2')">
     <img id="preview2" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview2')">上傳圖片2</button>
+    <button onclick="uploadImage(this, 'preview1')">上傳圖片2</button>
+    <button onclick="deleteImage(this)">刪除圖片2</button>
   </div>
 
   <div class="upload-row">
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview3')">
     <img id="preview3" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview3')">上傳圖片3</button>
+    <button onclick="uploadImage(this, 'preview1')">上傳圖片3</button>
+    <button onclick="deleteImage(this)">刪除圖片3</button>
   </div>
 
   <div class="upload-row">
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview4')">
     <img id="preview4" class="preview" src="">
     <span class="note-label">備註：勤前指示單</span>
-    <button onclick="uploadImage(this, 'preview4')">上傳圖片4</button>
+    <button onclick="uploadImage(this, 'preview1')">上傳圖片4</button>
+    <button onclick="deleteImage(this)">刪除圖片4</button>
   </div>
 
   <script>
@@ -175,6 +179,41 @@
         alert('圖片上傳失敗');
       });
     }
+    function uploadImage(button, previewId) {
+      const row = button.parentElement;
+      const fileInput = row.querySelector('input[type="file"]');
+      const noteLabel = row.querySelector('.note-label');
+      const building = document.getElementById('building').value;
+      const file = fileInput.files[0];
+      const note = noteLabel.textContent.replace('備註：', '').trim();
+
+      if (!file || !building) {
+        alert('請選擇建築物與圖片');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('building', building);
+      formData.append('note', note);
+
+      fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        row.setAttribute('data-filename', data.filename); // ✅ 儲存檔名供刪除使用
+        document.getElementById(previewId).src = '';
+        fileInput.value = '';
+      })
+      .catch(err => {
+        console.error('上傳失敗', err);
+        alert('圖片上傳失敗');
+      });
+}
+
   </script>
 
 <h3>勤前照片上傳預覽</h3>
@@ -182,12 +221,80 @@
 <input type="date" id="previewDate" onchange="goToPreviewDate()">
 
 <script>
-  function goToPreviewDate() {
-    const date = document.getElementById('previewDate').value;
-    if (date) {
-      window.location.href = '/gallery?date=' + date;
-    }
+function previewImage(input, previewId) {
+  const file = input.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      document.getElementById(previewId).src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
+}
+
+function uploadImage(button, previewId) {
+  const row = button.parentElement;
+  const fileInput = row.querySelector('input[type="file"]');
+  const noteLabel = row.querySelector('.note-label');
+  const building = document.getElementById('building').value;
+  const file = fileInput.files[0];
+  const note = noteLabel.textContent.replace('備註：', '').trim();
+
+  if (!file || !building) {
+    alert('請選擇建築物與圖片');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('building', building);
+  formData.append('note', note);
+
+  fetch('/upload-image', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    row.setAttribute('data-filename', data.filename); // ✅ 儲存檔名供刪除使用
+    document.getElementById(previewId).src = '';
+    fileInput.value = '';
+  })
+  .catch(err => {
+    console.error('上傳失敗', err);
+    alert('圖片上傳失敗');
+  });
+}
+
+function deleteImage(button) {
+  const row = button.parentElement;
+  const filename = row.getAttribute('data-filename'); // ✅ 讀取儲存的檔名
+
+  if (!filename) {
+    alert('尚未上傳圖片，無法刪除');
+    return;
+  }
+
+  fetch('/delete-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename })
+  })
+  .then(res => res.text())
+  .then(msg => {
+    alert(msg);
+    row.querySelector('img').src = '';
+    row.querySelector('input[type="file"]').value = '';
+    row.removeAttribute('data-filename');
+  })
+  .catch(err => {
+    console.error('刪除失敗', err);
+    alert('圖片刪除失敗');
+  });
+}
+
+
 </script>
 
 <h2>勤前照片上傳統計查詢</h2>
