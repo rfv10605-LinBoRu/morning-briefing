@@ -3,18 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>台北南區勤前照片</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    .upload-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      gap: 10px;
-    }
-    .preview {
-      width: 120px;
-      height: auto;
-      border: 1px solid #ccc;
-    }
     body {
       font-family: "微軟正黑體", sans-serif;
       font-size: 16px;
@@ -22,24 +12,20 @@
       padding: 20px;
       background-color: #f9f9f9;
     }
-
     h2, h3 {
       font-size: 22px;
       margin-bottom: 10px;
       color: #333;
     }
-
     label, .note-label {
       font-size: 16px;
       color: #444;
     }
-
     select, input[type="date"], input[type="month"] {
       font-size: 16px;
       padding: 6px;
       margin-bottom: 10px;
     }
-
     .upload-row {
       display: flex;
       flex-wrap: wrap;
@@ -51,14 +37,26 @@
       margin-bottom: 15px;
       gap: 10px;
     }
-
     .preview {
       width: 120px;
       height: auto;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-
+    .preview-img {
+      width: 150px;
+      height: auto;
+      margin: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .preview-img.zoom {
+      transform: scale(3);
+      z-index: 999;
+      position: relative;
+    }
     button {
       font-size: 16px;
       padding: 6px 12px;
@@ -68,16 +66,13 @@
       border-radius: 4px;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #0056b3;
     }
   </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <h2>台北南區勤前照片（請選擇大樓別）</h2>
-
   <select name="building" id="building">
     <option value="松山金融">松山金融</option>
     <option value="前瞻金融">前瞻金融</option>
@@ -112,7 +107,7 @@
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview2')">
     <img id="preview2" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview1')">上傳圖片2</button>
+    <button onclick="uploadImage(this, 'preview2')">上傳圖片2</button>
     <button onclick="deleteImage(this)">刪除圖片2</button>
   </div>
 
@@ -120,7 +115,7 @@
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview3')">
     <img id="preview3" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview1')">上傳圖片3</button>
+    <button onclick="uploadImage(this, 'preview3')">上傳圖片3</button>
     <button onclick="deleteImage(this)">刪除圖片3</button>
   </div>
 
@@ -128,11 +123,26 @@
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview4')">
     <img id="preview4" class="preview" src="">
     <span class="note-label">備註：勤前指示單</span>
-    <button onclick="uploadImage(this, 'preview1')">上傳圖片4</button>
+    <button onclick="uploadImage(this, 'preview4')">上傳圖片4</button>
     <button onclick="deleteImage(this)">刪除圖片4</button>
   </div>
 
+  <h3>勤前照片上傳預覽</h3>
+  <label for="previewDate">選擇日期：</label>
+  <input type="date" id="previewDate" onchange="loadGallery()">
+  <div id="gallery"></div>
+
+  <h2>勤前照片上傳統計查詢</h2>
+  <label for="month">選擇月份：</label>
+  <input type="month" id="month" onchange="filterByMonth()" value="2025-10">
+
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('previewDate').value = today;
+      loadGallery();
+    });
+
     function previewImage(input, previewId) {
       const file = input.files[0];
       if (file) {
@@ -166,144 +176,108 @@
         method: 'POST',
         body: formData
       })
-      .then(res => res.text())
-      .then(msg => {
-        alert(msg);
-
-        // ✅ 清空預覽與檔案選擇
-        document.getElementById(previewId).src = '';
-        fileInput.value = '';
-      })
-      .catch(err => {
-        console.error('上傳失敗', err);
-        alert('圖片上傳失敗');
-      });
-    }
-    function uploadImage(button, previewId) {
-      const row = button.parentElement;
-      const fileInput = row.querySelector('input[type="file"]');
-      const noteLabel = row.querySelector('.note-label');
-      const building = document.getElementById('building').value;
-      const file = fileInput.files[0];
-      const note = noteLabel.textContent.replace('備註：', '').trim();
-
-      if (!file || !building) {
-        alert('請選擇建築物與圖片');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('building', building);
-      formData.append('note', note);
-
-      fetch('/upload-image', {
-        method: 'POST',
-        body: formData
-      })
       .then(res => res.json())
       .then(data => {
         alert(data.message);
-        row.setAttribute('data-filename', data.filename); // ✅ 儲存檔名供刪除使用
-        document.getElementById(previewId).src = '';
+        row.setAttribute('data-filename', data.filename);
+        document.getElementById(previewId).src = encodeURI('/uploads/' + data.filename);
         fileInput.value = '';
       })
       .catch(err => {
-        console.error('上傳失敗', err);
+        console.error('上傳失敗:', err);
         alert('圖片上傳失敗');
       });
-}
+    }
 
+    function deleteImage(button) {
+      const row = button.parentElement;
+      const filename = row.getAttribute('data-filename');
+      if (!filename) {
+        alert('尚未上傳圖片，無法刪除');
+        return;
+      }
+
+      if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
+
+      fetch('/delete-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename })
+     })
+     .then(res => res.text())
+     .then(msg => {
+       alert(msg);
+       row.querySelector('img').src = '';
+       row.querySelector('input[type="file"]').value = '';
+       row.removeAttribute('data-filename');
+     })
+     .catch(err => {
+       console.error('刪除失敗:', err);
+       alert('圖片刪除失敗');
+     });
+    }
+
+    // ✅ 載入圖片牆
+    function loadGallery() {
+      const date = document.getElementById('previewDate').value;
+      if (!date) return;
+
+    fetch('/api/gallery/callback?date=' + date)
+      .then(res => res.json())
+      .then(images => {
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = '';
+
+        if (images.length === 0) {
+          gallery.innerHTML = '<p>這天沒有圖片。</p>';
+          return;
+        }
+
+        images.forEach(src => {
+          const img = document.createElement('img');
+          img.src = encodeURI(src); // ✅ 處理中文路徑
+          img.className = 'preview-img';
+          img.style.width = '150px';
+          img.style.margin = '10px';
+          img.style.border = '1px solid #ccc';
+          img.style.borderRadius = '4px';
+          img.style.cursor = 'pointer';
+          img.onclick = () => img.classList.toggle('zoom'); // ✅ 點擊放大
+          gallery.appendChild(img);
+        });
+      })
+      .catch(err => {
+        console.error('載入圖片失敗:', err);
+        alert('圖片載入失敗');
+      });
+    }
+
+
+    // ✅ 跳轉統計查詢
+    function filterByMonth() {
+      const month = document.getElementById('month').value;
+      window.location.href = '/stats?month=' + month;
+    }
   </script>
 
-<h3>勤前照片上傳預覽</h3>
-<label for="previewDate">選擇日期：</label>
-<input type="date" id="previewDate" onchange="goToPreviewDate()">
 
-<script>
-  function goToPreviewDate() {
+  <h4>選擇日期預覽圖片牆</h4>
+  <label for="previewDate">選擇日期：</label>
+  <input type="date" id="previewDate">
+
+  <script>
+  function goToGallery() {
     const date = document.getElementById('previewDate').value;
-    if (date) {
-      window.location.href = '/gallery?date=' + date; // ✅ 跳轉到預覽頁面
+    const building = ''; // 可選，如果你有建物分類可以改成 select
+
+    if (!date) {
+      alert('請先選擇日期');
+      return;
     }
+    window.location.href = `/gallery?date=${date}&building=${building}`;
   }
-</script>
-
-<script>
-function uploadImage(button, previewId) {
-  const row = button.parentElement;
-  const fileInput = row.querySelector('input[type="file"]');
-  const noteLabel = row.querySelector('.note-label');
-  const building = document.getElementById('building').value;
-  const file = fileInput.files[0];
-  const note = noteLabel.textContent.replace('備註：', '').trim();
-
-  if (!file || !building) {
-    alert('請選擇建築物與圖片');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('building', building);
-  formData.append('note', note);
-
-  fetch('/upload-image', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.message);
-
-    const filename = data.filename; // ✅ 接收後端回傳的檔名
-    row.setAttribute('data-filename', filename); // ✅ 儲存到 DOM 供刪除使用
-    document.getElementById(previewId).src = '';
-    fileInput.value = '';
-  })
-  .catch(err => {
-    console.error('上傳失敗', err);
-    alert('圖片上傳失敗');
-  });
-}
-
-function deleteImage(button) {
-  const row = button.parentElement;
-  const filename = row.getAttribute('data-filename'); // ✅ 例如：2025-10-31/1761898282013.jpg
-
-  if (!filename) {
-    alert('尚未上傳圖片，無法刪除');
-    return;
-  }
-
-  fetch('/delete-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename })
-  })
-  .then(res => res.text())
-  .then(msg => {
-    alert(msg);
-    row.querySelector('img').src = '';
-    row.querySelector('input[type="file"]').value = '';
-    row.removeAttribute('data-filename');
-  })
-  .catch(err => {
-    console.error('刪除失敗', err);
-    alert('圖片刪除失敗');
-  });
-}
-</script>
-
-<h2>勤前照片上傳統計查詢</h2>
-<label for="month">選擇月份：</label>
-<input type="month" id="month" onchange="filterByMonth()" value="2025-10">
-<script>
-  function filterByMonth() {
-    const month = document.getElementById('month').value;
-    window.location.href = '/stats?month=' + month;
-  }
-</script>
+  </script>
 
 </body>
 </html>
+        
