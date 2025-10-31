@@ -133,7 +133,11 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
   const newPath = path.join(folderPath, savedFilename);
 
   fs.rename(req.file.path, newPath, (err) => {
-    if (err) return res.status(500).send('圖片儲存失敗');
+      if (err) {
+      console.error('移動檔案失敗:', err);
+      return res.status(500).send('圖片儲存失敗');
+    }
+    // ✅ 回傳檔名給前端
     res.send({ message: '上傳成功', filename: `${folderName}/${savedFilename}` }); // ✅ 回傳完整路徑
   });
 });
