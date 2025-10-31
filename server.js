@@ -11,19 +11,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ✅ 顯示所有已上傳圖片
+// ✅ 圖片牆預覽頁面
 app.get('/gallery', (req, res) => {
   const uploadsPath = path.join(__dirname, 'uploads');
-  const selectedDate = req.query.date; // 從前端傳來的 ?date=yyyy-mm-dd
+  const building = req.query.building;
+  const date = req.query.date;
 
-  if (!fs.existsSync(uploadsPath)) {
-    return res.send('目前尚無上傳圖片');
-  }
+  if (!date) return res.status(400).send('請提供日期');
+  if (!fs.existsSync(uploadsPath)) return res.send('目前尚無上傳圖片');
 
-  const folders = fs.readdirSync(uploadsPath);
-  const filteredFolders = selectedDate
-    ? folders.filter(name => name.endsWith(selectedDate))
-    : folders;
+  const folderPrefix = building ? `${building}-${date}` : date;
+  const folders = fs.readdirSync(uploadsPath).filter(folder => folder.includes(folderPrefix));
 
   let html = `
     <html>
@@ -31,13 +29,8 @@ app.get('/gallery', (req, res) => {
       <meta charset="UTF-8">
       <title>圖片預覽</title>
       <style>
-        body {
-          font-family: sans-serif;
-          padding: 20px;
-        }
-        h2, h3 {
-          color: #333;
-        }
+        body { font-family: sans-serif; padding: 20px; }
+        h2, h3 { color: #333; }
         .preview-img {
           width: 150px;
           height: auto;
@@ -59,7 +52,7 @@ app.get('/gallery', (req, res) => {
     <body>
       <h2>勤前照片上傳預覽</h2>
       <label for="date">選擇日期：</label>
-      <input type="date" id="date" value="${selectedDate || ''}" onchange="filterByDate()">
+      <input type="date" id="date" value="${date}" onchange="filterByDate()">
       <script>
         document.addEventListener("DOMContentLoaded", function () {
           const images = document.querySelectorAll(".preview-img");
@@ -69,7 +62,6 @@ app.get('/gallery', (req, res) => {
             });
           });
         });
-
         function filterByDate() {
           const date = document.getElementById('date').value;
           window.location.href = '/gallery?date=' + date;
@@ -77,15 +69,15 @@ app.get('/gallery', (req, res) => {
       </script>
   `;
 
-  if (filteredFolders.length === 0) {
-    html += `<p>尚未上傳 ${selectedDate || '指定日期'} 的圖片</p>`;
+  if (folders.length === 0) {
+    html += `<p>尚未上傳 ${date} 的圖片</p>`;
   } else {
-    filteredFolders.forEach(folder => {
+    folders.forEach(folder => {
       const folderPath = path.join(uploadsPath, folder);
       const files = fs.readdirSync(folderPath);
       html += `<h3>${folder}</h3>`;
       files.forEach(file => {
-        const imgUrl = `/uploads/${folder}/${file}`;
+        const imgUrl = encodeURI(`/uploads/${folder}/${file}`);
         html += `<img src="${imgUrl}" class="preview-img">`;
       });
     });
@@ -96,25 +88,15 @@ app.get('/gallery', (req, res) => {
 });
 
 
-// ✅ 解析表單欄位（包含 building）
+// ✅ 解析表單欄位
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname)); // 提供 index.html
+app.use(express.json());
+app.use(express.static(__dirname));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// ✅ 暫存圖片，稍後移動到指定資料夾
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'temp'); // 所有圖片先存到 temp 資料夾
-  },
-  filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    cb(null, `${timestamp}-${file.originalname}`);
-  }
-});
+app.use(express.static(path.join(__dirname, 'public')));
 
 
-// ✅ 單張圖片上傳（四個按鈕都呼叫這個）
+// ✅ 圖片上傳
 app.post('/upload-image', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).send('請選擇圖片');
 
@@ -133,21 +115,18 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
   const newPath = path.join(folderPath, savedFilename);
 
   fs.rename(req.file.path, newPath, (err) => {
-      if (err) {
+    if (err) {
       console.error('移動檔案失敗:', err);
       return res.status(500).send('圖片儲存失敗');
     }
-    // ✅ 回傳檔名給前端
-    res.send({ message: '上傳成功', filename: `${folderName}/${savedFilename}` }); // ✅ 回傳完整路徑
+    res.send({ message: '上傳成功', filename: `${folderName}/${savedFilename}` });
   });
 });
 
-
-  // 刪除圖片
-app.use(express.json()); // ✅ 確保能解析 JSON body
+// ✅ 刪除圖片
 app.post('/delete-image', (req, res) => {
   const { filename } = req.body;
-  const filePath = path.join(__dirname, 'uploads', filename); // 假設圖片存在 uploads 資料夾
+  const filePath = path.join(__dirname, 'uploads', filename);
 
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
@@ -165,8 +144,6 @@ app.post('/delete-image', (req, res) => {
   });
 });
 
-
-
 // ✅ 每日上傳統計
 app.get('/stats', (req, res) => {
   const uploadsPath = path.join(__dirname, 'uploads');
@@ -178,7 +155,7 @@ app.get('/stats', (req, res) => {
   ];
 
   const now = new Date();
-  const selectedMonth = req.query.month || now.toISOString().slice(0, 7); // 格式 yyyy-MM
+  const selectedMonth = req.query.month || now.toISOString().slice(0, 7);
   const [year, month] = selectedMonth.split('-');
   const daysInMonth = new Date(year, month, 0).getDate();
 
@@ -236,9 +213,6 @@ app.get('/stats', (req, res) => {
   res.send(html);
 });
 
-
 app.listen(PORT, () => {
   console.log(`伺服器啟動於 http://localhost:${PORT}`);
 });
-
-
