@@ -116,38 +116,51 @@ const storage = multer.diskStorage({
 
 // ✅ 單張圖片上傳（四個按鈕都呼叫這個）
 app.post('/upload-image', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('請選擇圖片');
-  }
+  if (!req.file) return res.status(400).send('請選擇圖片');
 
   const building = req.body.building || '未指定大樓';
+  const note = req.body.note || '未指定備註';
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const date = `${year}-${month}-${day}`; // ✅ 正確的台灣時間
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const folderName = `${building}-${date}`;
   const folderPath = path.join(__dirname, 'uploads', folderName);
 
-  console.log('收到上傳請求');
+  if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
-  // 建立資料夾（如果尚未存在）
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true });
-  }
+  const timestamp = Date.now();
+  const ext = path.extname(req.file.originalname);
+  const savedFilename = `${timestamp}-${note}${ext}`;
+  const newPath = path.join(folderPath, savedFilename);
 
-  // 移動圖片到指定資料夾
-  const oldPath = req.file.path;
-  const newPath = path.join(folderPath, req.file.filename);
-
-  fs.rename(oldPath, newPath, (err) => {
-    if (err) {
-      console.error('移動檔案失敗:', err);
-      return res.status(500).send('圖片儲存失敗');
-    }
-    res.send(`圖片已儲存至 ${folderName}`);
+  fs.rename(req.file.path, newPath, (err) => {
+    if (err) return res.status(500).send('圖片儲存失敗');
+    res.send({ message: '上傳成功', filename: `${folderName}/${savedFilename}` }); // ✅ 回傳完整路徑
   });
 });
+
+
+  // 刪除圖片
+app.use(express.json()); // ✅ 確保能解析 JSON body
+app.post('/delete-image', (req, res) => {
+  const { filename } = req.body;
+  const filePath = path.join(__dirname, 'uploads', filename); // 假設圖片存在 uploads 資料夾
+
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      console.error('找不到檔案:', filePath);
+      return res.status(404).send('找不到檔案');
+    }
+
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('刪除失敗:', err);
+        return res.status(500).send('刪除失敗');
+      }
+      res.send('圖片已成功刪除');
+    });
+  });
+});
+
 
 
 // ✅ 每日上傳統計
