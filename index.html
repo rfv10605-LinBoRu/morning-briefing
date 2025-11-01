@@ -127,14 +127,29 @@
     <button onclick="deleteImage(this)">刪除圖片4</button>
   </div>
 
-  <h3>勤前照片上傳預覽</h3>
-  <label for="previewDate">選擇日期：</label>
-  <input type="date" id="previewDate" onchange="loadGallery()">
-  <div id="gallery"></div>
+  <h2>勤前照片上傳預覽</h2>
+  <label for="date">選擇日期：</label>
+  <input type="date" id="date" value="${date}" onchange="filterByDate()">
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const images = document.querySelectorAll(".preview-img");
+      images.forEach(img => {
+         img.addEventListener("click", () => {
+          img.classList.toggle("zoom");
+        });
+         });
+    });
+     function filterByDate() {
+      const date = document.getElementById('date').value;
+      window.location.href = '/gallery?date=' + date;
+    }
+  </script>
+
+
 
   <h2>勤前照片上傳統計查詢</h2>
   <label for="month">選擇月份：</label>
-  <input type="month" id="month" onchange="filterByMonth()" value="2025-10">
+  <input type="month" id="month" onchange="filterByMonth()">
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -258,24 +273,6 @@
       const month = document.getElementById('month').value;
       window.location.href = '/stats?month=' + month;
     }
-  </script>
-
-
-  <h4>選擇日期預覽圖片牆</h4>
-  <label for="previewDate">選擇日期：</label>
-  <input type="date" id="previewDate">
-
-  <script>
-  function goToGallery() {
-    const date = document.getElementById('previewDate').value;
-    const building = ''; // 可選，如果你有建物分類可以改成 select
-
-    if (!date) {
-      alert('請先選擇日期');
-      return;
-    }
-    window.location.href = `/gallery?date=${date}&building=${building}`;
-  }
   </script>
 
 </body>
