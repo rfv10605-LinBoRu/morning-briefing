@@ -5,11 +5,15 @@ const fs = require('fs');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 const PORT = 3000;
+const cors = require('cors');
+
 
 // 首頁
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+app.use(cors());
 
 // ✅ 圖片牆預覽頁面
 app.get('/gallery', (req, res) => {
@@ -22,7 +26,7 @@ app.get('/gallery', (req, res) => {
 
   const folderPrefix = building ? `${building}-${date}` : date;
   const folders = fs.readdirSync(uploadsPath).filter(folder => folder.includes(folderPrefix));
-
+   
   let html = `
     <html>
     <head>
@@ -124,25 +128,18 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
 });
 
 // ✅ 刪除圖片
-app.post('/delete-image', (req, res) => {
-  const { filename } = req.body;
-  const filePath = path.join(__dirname, 'uploads', filename);
+app.post('/delete-image', express.json(), (req, res) => {
+  const { folder, filename } = req.body;
+  const imagePath = path.join(__dirname, 'uploads', folder, filename);
 
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      console.error('找不到檔案:', filePath);
-      return res.status(404).send('找不到檔案');
-    }
-
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.error('刪除失敗:', err);
-        return res.status(500).send('刪除失敗');
-      }
-      res.send('圖片已成功刪除');
-    });
-  });
+  if (fs.existsSync(imagePath)) {
+    fs.unlinkSync(imagePath);
+    res.send({ success: true });
+  } else {
+    res.status(404).send({ success: false, message: '圖片不存在' });
+  }
 });
+
 
 // ✅ 每日上傳統計
 app.get('/stats', (req, res) => {
