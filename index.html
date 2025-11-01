@@ -165,7 +165,8 @@
 
   <h3>勤前照片上傳預覽</h3>
   <label for="date">選擇日期：</label>
-  <input type="date" id="date" value="${date}" onchange="filterByDate()">
+  <input type="date" id="date" oninput="filterByDate()">
+
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const images = document.querySelectorAll(".preview-img");
