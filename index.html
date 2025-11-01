@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8">
   <title>台北南區勤前照片</title>
@@ -12,20 +13,28 @@
       padding: 20px;
       background-color: #f9f9f9;
     }
-    h2, h3 {
+
+    h2,
+    h3 {
       font-size: 22px;
       margin-bottom: 10px;
       color: #333;
     }
-    label, .note-label {
+
+    label,
+    .note-label {
       font-size: 16px;
       color: #444;
     }
-    select, input[type="date"], input[type="month"] {
+
+    select,
+    input[type="date"],
+    input[type="month"] {
       font-size: 16px;
       padding: 6px;
       margin-bottom: 10px;
     }
+
     .upload-row {
       display: flex;
       flex-wrap: wrap;
@@ -37,12 +46,14 @@
       margin-bottom: 15px;
       gap: 10px;
     }
+
     .preview {
       width: 120px;
       height: auto;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     .preview-img {
       width: 150px;
       height: auto;
@@ -52,11 +63,13 @@
       cursor: pointer;
       transition: transform 0.2s ease;
     }
+
     .preview-img.zoom {
       transform: scale(3);
       z-index: 999;
       position: relative;
     }
+
     button {
       font-size: 16px;
       padding: 6px 12px;
@@ -66,11 +79,13 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #0056b3;
     }
   </style>
 </head>
+
 <body>
   <h2>台北南區勤前照片（請選擇大樓別）</h2>
   <select name="building" id="building">
@@ -130,12 +145,12 @@
     document.addEventListener("DOMContentLoaded", function () {
       const images = document.querySelectorAll(".preview-img");
       images.forEach(img => {
-         img.addEventListener("click", () => {
+        img.addEventListener("click", () => {
           img.classList.toggle("zoom");
         });
-         });
+      });
     });
-     function filterByDate() {
+    function filterByDate() {
       const date = document.getElementById('date').value;
       window.location.href = '/gallery?date=' + date;
     }
@@ -154,16 +169,43 @@
       loadGallery();
     });
 
-    function previewImage(input, previewId) {
+    function uploadImage(button, previewId) {
+      const input = button.previousElementSibling.previousElementSibling;
       const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          document.getElementById(previewId).src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+      const building = document.getElementById('building')?.value || '未指定建物';
+
+      if (!file || !building) {
+        alert('請選擇建物與圖片');
+        return;
       }
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('building', building);
+
+      fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+
+            // ✅ 清空預覽圖片（前端）
+            const preview = document.getElementById(previewId);
+            preview.src = ''; // ✅ 清空預覽圖片
+            input.value = ''; // ✅ 清空檔案選擇欄位
+          } else {
+            alert('❌ 上傳失敗：' + data.message);
+          }
+        })
+        .catch(err => {
+          console.error('上傳失敗:', err);
+          alert('圖片上傳失敗');
+        });
     }
+
 
     function uploadImage(button, previewId) {
       const row = button.parentElement;
@@ -187,17 +229,17 @@
         method: 'POST',
         body: formData
       })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        row.setAttribute('data-filename', data.filename);
-        document.getElementById(previewId).src = encodeURI('/uploads/' + data.filename);
-        fileInput.value = '';
-      })
-      .catch(err => {
-        console.error('上傳失敗:', err);
-        alert('圖片上傳失敗');
-      });
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          row.setAttribute('data-filename', data.filename);
+          document.getElementById(previewId).src = encodeURI('/uploads/' + data.filename);
+          fileInput.value = '';
+        })
+        .catch(err => {
+          console.error('上傳失敗:', err);
+          alert('圖片上傳失敗');
+        });
     }
 
     // ✅ 跳轉統計查詢
@@ -206,31 +248,46 @@
       window.location.href = '/stats?month=' + month;
     }
   </script>
- 
+
   <script>
-  function deleteImage(folder, filename) {
-    if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
- 
-    fetch('/delete-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ folder, filename })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert('✅ 刪除成功');
-        location.reload(); // 重新載入頁面
-      } else {
-        alert('❌ 刪除失敗：' + data.message);
-      }
-    })
-    .catch(err => {
-      alert('❌ 發生錯誤');
-      console.error(err);
-    });
-  }
+    function deleteImage(folder, filename) {
+      if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
+
+      fetch('/delete-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder, filename })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('✅ 刪除成功');
+            location.reload(); // 重新載入頁面
+          } else {
+            alert('❌ 刪除失敗：' + data.message);
+          }
+        })
+        .catch(err => {
+          alert('❌ 發生錯誤');
+          console.error(err);
+        });
+    }
   </script>
 
+  <script>
+    function previewImage(input, previewId) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById(previewId).src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+
+
 </body>
+
 </html>
