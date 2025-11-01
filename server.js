@@ -26,12 +26,12 @@ app.get('/gallery', (req, res) => {
 
   const folderPrefix = building ? `${building}-${date}` : date;
   const folders = fs.readdirSync(uploadsPath).filter(folder => folder.includes(folderPrefix));
-   
+
   let html = `
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>圖片預覽</title>
+      <title>勤前照片上傳預覽</title>
       <style>
         body { font-family: sans-serif; padding: 20px; }
         h2, h3 { color: #333; }
@@ -51,12 +51,52 @@ app.get('/gallery', (req, res) => {
           margin-bottom: 20px;
           padding: 5px;
         }
+        .img-block {
+          display: inline-block;
+          text-align: center;
+          margin: 10px;
+        }
+        button {
+          margin-top: 5px;
+          padding: 5px 10px;
+          background-color: #e74c3c;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        button:hover {
+          background-color: #c0392b;
+        }
       </style>
     </head>
     <body>
       <h2>勤前照片上傳預覽</h2>
       <label for="date">選擇日期：</label>
       <input type="date" id="date" value="${date}" onchange="filterByDate()">
+  `;
+
+  if (folders.length === 0) {
+    html += `<p>尚未上傳 ${date} 的圖片</p>`;
+  } else {
+    folders.forEach(folder => {
+      const folderPath = path.join(uploadsPath, folder);
+      const files = fs.readdirSync(folderPath).filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
+      html += `<h3>${folder}</h3>`;
+      files.forEach(file => {
+        const imgUrl = encodeURI(`/uploads/${folder}/${file}`);
+        html += `
+          <div class="img-block">
+            <img src="${imgUrl}" class="preview-img">
+            <br>
+            <button onclick="deleteImage('${folder}', '${file}')">刪除</button>
+          </div>
+        `;
+      });
+    });
+  }
+
+  html += `
       <script>
         document.addEventListener("DOMContentLoaded", function () {
           const images = document.querySelectorAll(".preview-img");
@@ -66,28 +106,39 @@ app.get('/gallery', (req, res) => {
             });
           });
         });
+
         function filterByDate() {
           const date = document.getElementById('date').value;
           window.location.href = '/gallery?date=' + date;
         }
+
+        function deleteImage(folder, filename) {
+          if (!confirm(\`確定要刪除 \${filename} 嗎？\`)) return;
+
+          fetch('/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folder, filename })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              alert('✅ 刪除成功');
+              location.reload();
+            } else {
+              alert('❌ 刪除失敗：' + data.message);
+            }
+          })
+          .catch(err => {
+            alert('❌ 發生錯誤');
+            console.error(err);
+          });
+        }
       </script>
+    </body>
+    </html>
   `;
 
-  if (folders.length === 0) {
-    html += `<p>尚未上傳 ${date} 的圖片</p>`;
-  } else {
-    folders.forEach(folder => {
-      const folderPath = path.join(uploadsPath, folder);
-      const files = fs.readdirSync(folderPath);
-      html += `<h3>${folder}</h3>`;
-      files.forEach(file => {
-        const imgUrl = encodeURI(`/uploads/${folder}/${file}`);
-        html += `<img src="${imgUrl}" class="preview-img">`;
-      });
-    });
-  }
-
-  html += `</body></html>`;
   res.send(html);
 });
 
