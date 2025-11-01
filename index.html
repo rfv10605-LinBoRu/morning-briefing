@@ -89,6 +89,7 @@
 <body>
   <h2>台北南區勤前照片（請選擇大樓別）</h2>
   <select name="building" id="building">
+    <option value="" disabled selected hidden>請選擇</option>
     <option value="松山金融">松山金融</option>
     <option value="前瞻金融">前瞻金融</option>
     <option value="全球民權">全球民權</option>
@@ -114,28 +115,28 @@
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview1')">
     <img id="preview1" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview1')">上傳圖片1</button>
+    <button onclick="uploadImage(this, 'preview1')">點擊上傳</button>
   </div>
 
   <div class="upload-row">
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview2')">
     <img id="preview2" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview2')">上傳圖片2</button>
+    <button onclick="uploadImage(this, 'preview2')">點擊上傳</button>
   </div>
 
   <div class="upload-row">
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview3')">
     <img id="preview3" class="preview" src="">
     <span class="note-label">備註：勤前照片</span>
-    <button onclick="uploadImage(this, 'preview3')">上傳圖片3</button>
+    <button onclick="uploadImage(this, 'preview3')">點擊上傳</button>
   </div>
 
   <div class="upload-row">
     <input type="file" accept="image/jpeg" onchange="previewImage(this, 'preview4')">
     <img id="preview4" class="preview" src="">
     <span class="note-label">備註：勤前指示單</span>
-    <button onclick="uploadImage(this, 'preview4')">上傳圖片4</button>
+    <button onclick="uploadImage(this, 'preview4')">點擊上傳</button>
   </div>
 
   <h2>勤前照片上傳預覽</h2>
@@ -156,8 +157,6 @@
     }
   </script>
 
-
-
   <h2>勤前照片上傳統計查詢</h2>
   <label for="month">選擇月份：</label>
   <input type="month" id="month" onchange="filterByMonth()">
@@ -168,44 +167,6 @@
       document.getElementById('previewDate').value = today;
       loadGallery();
     });
-
-    function uploadImage(button, previewId) {
-      const input = button.previousElementSibling.previousElementSibling;
-      const file = input.files[0];
-      const building = document.getElementById('building')?.value || '未指定建物';
-
-      if (!file || !building) {
-        alert('請選擇建物與圖片');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('building', building);
-
-      fetch('/upload-image', {
-        method: 'POST',
-        body: formData
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            alert(data.message);
-
-            // ✅ 清空預覽圖片（前端）
-            const preview = document.getElementById(previewId);
-            preview.src = ''; // ✅ 清空預覽圖片
-            input.value = ''; // ✅ 清空檔案選擇欄位
-          } else {
-            alert('❌ 上傳失敗：' + data.message);
-          }
-        })
-        .catch(err => {
-          console.error('上傳失敗:', err);
-          alert('圖片上傳失敗');
-        });
-    }
-
 
     function uploadImage(button, previewId) {
       const row = button.parentElement;
@@ -231,15 +192,29 @@
       })
         .then(res => res.json())
         .then(data => {
-          alert(data.message);
+          alert(data.message || '圖片上傳成功');
+
+          // ✅ 更新圖片預覽為伺服器上的圖片（可選）
+          const preview = document.getElementById(previewId);
+          if (preview && data.filename) {
+            preview.src = encodeURI('/uploads/' + data.filename);
+            preview.style.display = 'inline-block'; // 如果你想顯示伺服器圖片
+          }
+
+          // ✅ 記住檔名（存在 row 的 data-filename 屬性）
           row.setAttribute('data-filename', data.filename);
-          document.getElementById(previewId).src = encodeURI('/uploads/' + data.filename);
+
+          // ✅ 清空檔案欄位
           fileInput.value = '';
+
+          // ✅ 清空預覽圖片（讓使用者知道已完成）
+          if (preview) {
+            // 若你不想顯示伺服器圖片，而是直接清空預覽：
+            preview.removeAttribute('src');
+            preview.style.display = 'none';
+          }
         })
-        .catch(err => {
-          console.error('上傳失敗:', err);
-          alert('圖片上傳失敗');
-        });
+
     }
 
     // ✅ 跳轉統計查詢
@@ -250,43 +225,19 @@
   </script>
 
   <script>
-    function deleteImage(folder, filename) {
-      if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
-
-      fetch('/delete-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folder, filename })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            alert('✅ 刪除成功');
-            location.reload(); // 重新載入頁面
-          } else {
-            alert('❌ 刪除失敗：' + data.message);
-          }
-        })
-        .catch(err => {
-          alert('❌ 發生錯誤');
-          console.error(err);
-        });
-    }
-  </script>
-
-  <script>
     function previewImage(input, previewId) {
       const file = input.files[0];
       if (!file) return;
 
       const reader = new FileReader();
       reader.onload = function (e) {
-        document.getElementById(previewId).src = e.target.result;
+        const preview = document.getElementById(previewId);
+        preview.src = e.target.result;
+        preview.style.display = 'block'; // 顯示圖片（如果你有用 CSS 隱藏）
       };
       reader.readAsDataURL(file);
     }
   </script>
-
 
 </body>
 
