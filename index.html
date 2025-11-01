@@ -204,75 +204,36 @@
       });
     }
 
-    function deleteImage(button) {
-      const row = button.parentElement;
-      const filename = row.getAttribute('data-filename');
-      if (!filename) {
-        alert('尚未上傳圖片，無法刪除');
-        return;
-      }
-
-      if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
-
-      fetch('/delete-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename })
-     })
-     .then(res => res.text())
-     .then(msg => {
-       alert(msg);
-       row.querySelector('img').src = '';
-       row.querySelector('input[type="file"]').value = '';
-       row.removeAttribute('data-filename');
-     })
-     .catch(err => {
-       console.error('刪除失敗:', err);
-       alert('圖片刪除失敗');
-     });
-    }
-
-    // ✅ 載入圖片牆
-    function loadGallery() {
-      const date = document.getElementById('previewDate').value;
-      if (!date) return;
-
-    fetch('/api/gallery/callback?date=' + date)
-      .then(res => res.json())
-      .then(images => {
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = '';
-
-        if (images.length === 0) {
-          gallery.innerHTML = '<p>這天沒有圖片。</p>';
-          return;
-        }
-
-        images.forEach(src => {
-          const img = document.createElement('img');
-          img.src = encodeURI(src); // ✅ 處理中文路徑
-          img.className = 'preview-img';
-          img.style.width = '150px';
-          img.style.margin = '10px';
-          img.style.border = '1px solid #ccc';
-          img.style.borderRadius = '4px';
-          img.style.cursor = 'pointer';
-          img.onclick = () => img.classList.toggle('zoom'); // ✅ 點擊放大
-          gallery.appendChild(img);
-        });
-      })
-      .catch(err => {
-        console.error('載入圖片失敗:', err);
-        alert('圖片載入失敗');
-      });
-    }
-
-
     // ✅ 跳轉統計查詢
     function filterByMonth() {
       const month = document.getElementById('month').value;
       window.location.href = '/stats?month=' + month;
     }
+  </script>
+ 
+  <script>
+  function deleteImage(folder, filename) {
+    if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
+ 
+    fetch('/delete-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder, filename })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert('✅ 刪除成功');
+        location.reload(); // 重新載入頁面
+      } else {
+        alert('❌ 刪除失敗：' + data.message);
+      }
+    })
+    .catch(err => {
+      alert('❌ 發生錯誤');
+      console.error(err);
+    });
+  }
   </script>
 
 </body>
