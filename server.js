@@ -6,6 +6,7 @@ const app = express();
 const upload = multer({ dest: 'uploads/' });
 const PORT = 3000;
 const cors = require('cors');
+const router = express.Router();
 
 
 // 首頁
@@ -180,16 +181,47 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
 
 // ✅ 刪除圖片
 app.post('/delete-image', express.json(), (req, res) => {
-  const { folder, filename } = req.body;
-  const imagePath = path.join(__dirname, 'uploads', folder, filename);
+  try {
+    const { folder, filename } = req.body;
+    if (!folder || !filename) {
+      return res.status(400).send({ success: false, message: '缺少 folder 或 filename' });
+    }
 
-  if (fs.existsSync(imagePath)) {
+    // uploads 根目錄（調整成你專案實際路徑）
+    const UPLOADS_ROOT = path.resolve(__dirname, 'uploads');
+
+    // 在路由內宣告 imagePath（確保作用域內可用）
+    const imagePath = path.resolve(UPLOADS_ROOT, folder, filename);
+
+    // 防止路徑穿越（確保 imagePath 在 UPLOADS_ROOT 之下）
+    if (!imagePath.startsWith(UPLOADS_ROOT + path.sep) && imagePath !== UPLOADS_ROOT) {
+      return res.status(403).send({ success: false, message: '無效路徑' });
+    }
+
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).send({ success: false, message: '圖片不存在' });
+    }
+
+    // 刪除檔案
     fs.unlinkSync(imagePath);
-    res.send({ success: true });
-  } else {
-    res.status(404).send({ success: false, message: '圖片不存在' });
+
+    // 檢查資料夾是否為空並刪除空資料夾
+    const folderPath = path.dirname(imagePath);
+    const remaining = fs.readdirSync(folderPath).filter(n => n !== '.' && n !== '..');
+    if (remaining.length === 0) {
+      try { fs.rmdirSync(folderPath); }
+      catch (err) { console.error('刪除資料夾失敗', err); }
+      return res.send({ success: true, message: '圖片已刪除，資料夾為空已刪除' });
+    }
+
+    return res.send({ success: true, message: '圖片已刪除' });
+  } catch (err) {
+    console.error('刪除圖片錯誤', err);
+    return res.status(500).send({ success: false, message: '伺服器錯誤' });
   }
 });
+
+
 
 
 // ✅ 每日上傳統計
