@@ -1,12 +1,29 @@
+// server.js（請以此檔案覆蓋或替換你現有內容）
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
 const app = express();
-const upload = multer({ dest: 'uploads/' });
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// 以環境變數為主，Railway 上請設定 UPLOADS_ROOT=/data/uploads（或你設定的 mount path）
+const UPLOADS_ROOT = path.resolve(process.env.UPLOADS_ROOT || path.join(__dirname, 'uploads'));
+
+// 啟動時建立必要目錄（uploads root 與 tmp）
+try {
+  fs.mkdirSync(UPLOADS_ROOT, { recursive: true });
+  fs.mkdirSync(path.join(UPLOADS_ROOT, 'tmp'), { recursive: true });
+  console.log('UPLOADS_ROOT =', UPLOADS_ROOT);
+} catch (err) {
+  console.error('無法建立 UPLOADS_ROOT:', UPLOADS_ROOT, err);
+  process.exit(1);
+}
+
+// multer 暫存設定，暫存在永久磁碟下的 tmp（避免寫到 container ephemeral）
+const upload = multer({ dest: path.join(UPLOADS_ROOT, 'tmp') });
+
 const cors = require('cors');
-const router = express.Router();
 
 // 首頁
 app.get('/', (req, res) => {
@@ -15,13 +32,14 @@ app.get('/', (req, res) => {
 
 app.use(cors());
 
-// ✅ 圖片牆預覽頁面
+// 圖片牆預覽頁面
 app.get('/gallery', (req, res) => {
-  const uploadsPath = path.join(__dirname, 'uploads');
   const building = req.query.building;
   const date = req.query.date;
 
   if (!date) return res.status(400).send('請提供日期');
+
+  const uploadsPath = UPLOADS_ROOT;
   if (!fs.existsSync(uploadsPath)) return res.send('目前尚無上傳圖片');
 
   const folderPrefix = building ? `${building}-${date}` : date;
@@ -35,39 +53,12 @@ app.get('/gallery', (req, res) => {
       <style>
         body { font-family: sans-serif; padding: 20px; }
         h2, h3 { color: #333; }
-        .preview-img {
-          width: 150px;
-          height: auto;
-          margin: 10px;
-          cursor: pointer;
-          transition: transform 0.2s ease;
-        }
-        .preview-img.zoom {
-          transform: scale(3);
-          z-index: 999;
-          position: relative;
-        }
-        input[type="date"] {
-          margin-bottom: 20px;
-          padding: 5px;
-        }
-        .img-block {
-          display: inline-block;
-          text-align: center;
-          margin: 10px;
-        }
-        button {
-          margin-top: 5px;
-          padding: 5px 10px;
-          background-color: #e74c3c;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-        button:hover {
-          background-color: #c0392b;
-        }
+        .preview-img { width: 150px; height: auto; margin: 10px; cursor: pointer; transition: transform 0.2s ease; }
+        .preview-img.zoom { transform: scale(3); z-index: 999; position: relative; }
+        input[type="date"] { margin-bottom: 20px; padding: 5px; }
+        .img-block { display: inline-block; text-align: center; margin: 10px; }
+        button { margin-top: 5px; padding: 5px 10px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #c0392b; }
       </style>
     </head>
     <body>
@@ -109,7 +100,11 @@ app.get('/gallery', (req, res) => {
 
         function filterByDate() {
           const date = document.getElementById('date').value;
-          window.location.href = '/gallery?date=' + date;
+          const params = new URLSearchParams(location.search);
+          const building = params.get('building') || '';
+          let url = '/gallery?date=' + date;
+          if (building) url += '&building=' + encodeURIComponent(building);
+          window.location.href = url;
         }
 
         function deleteImage(folder, filename) {
@@ -142,14 +137,16 @@ app.get('/gallery', (req, res) => {
   res.send(html);
 });
 
-// ✅ 解析表單欄位
+// 解析表單欄位
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// 靜態資源：根目錄與永久 uploads
 app.use(express.static(__dirname));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(UPLOADS_ROOT));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ 圖片上傳
+// 圖片上傳
 app.post('/upload-image', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).send('請選擇圖片');
 
@@ -158,7 +155,11 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
   const now = new Date();
   const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const folderName = `${building}-${date}`;
-  const folderPath = path.join(__dirname, 'uploads', folderName);
+  const folderPath = path.join(UPLOADS_ROOT, folderName);
+
+  if (!folderPath.startsWith(UPLOADS_ROOT + path.sep) && folderPath !== UPLOADS_ROOT) {
+    return res.status(403).send('invalid folder');
+  }
 
   if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
@@ -167,6 +168,7 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
   const savedFilename = `${timestamp}-${note}${ext}`;
   const newPath = path.join(folderPath, savedFilename);
 
+  // 將 multer 暫存檔搬到目標資料夾
   fs.rename(req.file.path, newPath, (err) => {
     if (err) {
       console.error('移動檔案失敗:', err);
@@ -176,21 +178,15 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
   });
 });
 
-// ✅ 刪除圖片
-app.post('/delete-image', express.json(), (req, res) => {
+// 刪除圖片
+app.post('/delete-image', (req, res) => {
   try {
     const { folder, filename } = req.body;
     if (!folder || !filename) {
       return res.status(400).send({ success: false, message: '缺少 folder 或 filename' });
     }
 
-    // uploads 根目錄（調整成你專案實際路徑）
-    const UPLOADS_ROOT = path.resolve(__dirname, 'uploads');
-
-    // 在路由內宣告 imagePath（確保作用域內可用）
     const imagePath = path.resolve(UPLOADS_ROOT, folder, filename);
-
-    // 防止路徑穿越（確保 imagePath 在 UPLOADS_ROOT 之下）
     if (!imagePath.startsWith(UPLOADS_ROOT + path.sep) && imagePath !== UPLOADS_ROOT) {
       return res.status(403).send({ success: false, message: '無效路徑' });
     }
@@ -199,15 +195,13 @@ app.post('/delete-image', express.json(), (req, res) => {
       return res.status(404).send({ success: false, message: '圖片不存在' });
     }
 
-    // 刪除檔案
     fs.unlinkSync(imagePath);
 
     // 檢查資料夾是否為空並刪除空資料夾
     const folderPath = path.dirname(imagePath);
     const remaining = fs.readdirSync(folderPath).filter(n => n !== '.' && n !== '..');
     if (remaining.length === 0) {
-      try { fs.rmdirSync(folderPath); }
-      catch (err) { console.error('刪除資料夾失敗', err); }
+      try { fs.rmdirSync(folderPath); } catch (err) { console.error('刪除資料夾失敗', err); }
       return res.send({ success: true, message: '圖片已刪除，資料夾為空已刪除' });
     }
 
@@ -218,11 +212,9 @@ app.post('/delete-image', express.json(), (req, res) => {
   }
 });
 
-
-
-// ✅ 每日上傳統計
+// 每日上傳統計
 app.get('/stats', (req, res) => {
-  const uploadsPath = path.join(__dirname, 'uploads');
+  const uploadsPath = UPLOADS_ROOT;
   const buildings = [
     '松山金融', '前瞻金融', '全球民權', '產物大樓',
     '芷英大樓', '華航大樓', '南京科技', '互助營造',
@@ -289,6 +281,30 @@ app.get('/stats', (req, res) => {
   res.send(html);
 });
 
+// 臨時搬移舊 uploads 到永久 UPLOADS_ROOT（執行一次後建議移除此 route）
+app.post('/admin/migrate-uploads', (req, res) => {
+  try {
+    const oldRoot = path.join(__dirname, 'uploads'); // 若你之前的 uploads 在專案內
+    if (!fs.existsSync(oldRoot)) return res.json({ migrated: false, message: 'no old uploads' });
+
+    fs.readdirSync(oldRoot).forEach(folder => {
+      const src = path.join(oldRoot, folder);
+      const dst = path.join(UPLOADS_ROOT, folder);
+      if (!fs.existsSync(dst)) fs.mkdirSync(dst, { recursive: true });
+      fs.readdirSync(src).forEach(file => {
+        const s = path.join(src, file);
+        const d = path.join(dst, file);
+        fs.renameSync(s, d);
+      });
+    });
+
+    return res.json({ migrated: true });
+  } catch (err) {
+    console.error('migrate error', err);
+    return res.status(500).json({ migrated: false, error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`伺服器啟動於 http://localhost:${PORT}`);
+  console.log(`伺服器啟動於 http://localhost:${PORT} ; UPLOADS_ROOT=${UPLOADS_ROOT}`);
 });
