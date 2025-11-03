@@ -34,7 +34,7 @@ app.get('/gallery', (req, res) => {
       <meta charset="UTF-8">
       <title>勤前照片上傳預覽</title>
       <style>
-        body { font-family: sans-serif; padding: 20px; }
+        body { font-family: sans-serif; padding: 22px; }
         h2, h3 { color: #333; }
         .preview-img {
           width: 150px;
