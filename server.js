@@ -8,7 +8,6 @@ const PORT = 3000;
 const cors = require('cors');
 const router = express.Router();
 
-
 // 首頁
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -34,7 +33,7 @@ app.get('/gallery', (req, res) => {
       <meta charset="UTF-8">
       <title>勤前照片上傳預覽</title>
       <style>
-        body { font-family: sans-serif; padding: 22px; }
+        body { font-family: sans-serif; padding: 20px; }
         h2, h3 { color: #333; }
         .preview-img {
           width: 150px;
@@ -143,14 +142,12 @@ app.get('/gallery', (req, res) => {
   res.send(html);
 });
 
-
 // ✅ 解析表單欄位
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(__dirname));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 // ✅ 圖片上傳
 app.post('/upload-image', upload.single('image'), (req, res) => {
@@ -220,7 +217,6 @@ app.post('/delete-image', express.json(), (req, res) => {
     return res.status(500).send({ success: false, message: '伺服器錯誤' });
   }
 });
-
 
 
 
@@ -296,3 +292,4 @@ app.get('/stats', (req, res) => {
 app.listen(PORT, () => {
   console.log(`伺服器啟動於 http://localhost:${PORT}`);
 });
+
