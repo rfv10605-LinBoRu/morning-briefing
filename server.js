@@ -386,7 +386,7 @@ app.post('/delete-image', (req, res) => {
   }
 });
 
-// 每日上傳統計（僅上班日，逐日進度表在上方、摘要在下方）
+// 每日上傳統計（僅上班日，逐日進度表在上方、摘要在下方，含下載按鈕）
 app.get('/stats', (req, res) => {
   const uploadsPath = UPLOADS_ROOT;
   const buildings = [
@@ -401,7 +401,6 @@ app.get('/stats', (req, res) => {
   const [year, month] = selectedMonth.split('-');
   const daysInMonth = new Date(year, month, 0).getDate();
 
-  // 建立完整日期清單與上班日清單（週一~週五）
   const dateList = [];
   const workdayList = [];
   for (let day = 1; day <= daysInMonth; day++) {
@@ -409,87 +408,67 @@ app.get('/stats', (req, res) => {
     const monthStr = String(month).padStart(2, '0');
     const dateStr = `${year}-${monthStr}-${dayStr}`;
     dateList.push(dateStr);
-
     const dateObj = new Date(`${year}-${monthStr}-${dayStr}`);
-    const dow = dateObj.getDay(); // 0=Sun,6=Sat
+    const dow = dateObj.getDay();
     if (dow >= 1 && dow <= 5) workdayList.push(dateStr);
   }
 
-  // ===== 假日清單（支援 YYYY-MM-DD 與 ROC 格式） =====
   let holidayListRaw = [
     '2025-10-06', '114/10/10'
-    // 例：'2025-11-03', '114/11/01'
   ];
   if (req.query.holidays) {
-    holidayListRaw = holidayListRaw.concat(
-      req.query.holidays.split(',').map(s => s.trim()).filter(Boolean)
-    );
+    holidayListRaw = holidayListRaw.concat(req.query.holidays.split(',').map(s => s.trim()).filter(Boolean));
   }
-
   function normalizeHoliday(h) {
     if (!h) return null;
     h = h.trim();
-    // 西元 YYYY-MM-DD
     if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(h)) {
       const parts = h.split('-');
-      const y = parts[0];
-      const m = parts[1].padStart(2, '0');
-      const d = parts[2].padStart(2, '0');
-      return `${y}-${m}-${d}`;
+      return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
     }
-    // ROC 114/11/1、114-11-01
     const m2 = h.match(/^(\d{2,3})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
     if (m2) {
-      const rocYear = parseInt(m2[1], 10);
-      const mm = String(m2[2]).padStart(2, '0');
-      const dd = String(m2[3]).padStart(2, '0');
-      const gy = rocYear + 1911;
-      return `${gy}-${mm}-${dd}`;
+      const gy = parseInt(m2[1], 10) + 1911;
+      return `${gy}-${String(m2[2]).padStart(2, '0')}-${String(m2[3]).padStart(2, '0')}`;
     }
     return null;
   }
-
   const holidayList = Array.from(new Set(holidayListRaw.map(normalizeHoliday).filter(Boolean)));
-
-  // 從 workdayList 排除假日
   const filteredWorkdayList = workdayList.filter(d => !holidayList.includes(d));
 
-  // 統計每棟大樓在上班日的上傳次數
   const buildingStats = {};
   buildings.forEach(building => {
     let count = 0;
     filteredWorkdayList.forEach(date => {
-      const folderName = `${building}-${date}`;
-      const folderPath = path.join(uploadsPath, folderName);
+      const folderPath = path.join(uploadsPath, `${building}-${date}`);
       if (fs.existsSync(folderPath)) count++;
     });
     buildingStats[building] = count;
   });
 
-  // 產生 HTML（逐日進度表在上方，摘要在下方）
   let html = `
   <html>
   <head>
     <meta charset="UTF-8">
     <title>${year}年${month}月 上傳統計（僅上班日）</title>
     <style>
-      body { font-family: sans-serif; padding: 20px; margin:0; background:#f7f8fa; color:#222; }
+      body { font-family: sans-serif; padding:20px; margin:0; background:#f7f8fa; color:#222; }
       .header { display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
       .back-btn { display:inline-block; padding:8px 12px; background:#007bff; color:#fff; border-radius:6px; text-decoration:none; cursor:pointer; }
+      .download-btn { display:inline-block; padding:8px 12px; background:#28a745; color:#fff; border-radius:6px; text-decoration:none; cursor:pointer; }
       h2 { margin:8px 0 12px 0; }
       .summary { background:#fff; border:1px solid #e6e6e6; padding:12px; border-radius:8px; margin-top:12px; }
-      .summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+      .summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px; }
       .card { background:#fff; border:1px solid #eaeaea; padding:10px; border-radius:8px; }
       input[type="month"] { padding:6px; }
 
       .table-wrap { background:#fff; border:1px solid #e6e6e6; border-radius:8px; padding:8px; max-height:66vh; overflow:auto; }
-      table { border-collapse: collapse; width:100%; min-width:700px; }
-      th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; white-space: nowrap; background-color: #fff; }
-      th { background-color: #f3f6fb; position: sticky; top: 0; z-index: 5; font-weight: 600; }
-      td:first-child, th:first-child { position: sticky; left: 0; background-color: #f9fafb; z-index: 6; text-align: left; padding-left: 12px; }
-      td.ok { color: #0a8a3c; font-weight: 700; cursor: pointer; }
-      td.miss { color: #e03e2d; font-weight: 700; cursor: pointer; }
-      tr:hover td { background-color: #fcfdfe; }
+      table { border-collapse:collapse; width:100%; min-width:700px; }
+      th, td { border:1px solid #ddd; padding:6px 10px; text-align:center; white-space:nowrap; background:#fff; }
+      th { background:#f3f6fb; position:sticky; top:0; z-index:5; font-weight:600; }
+      td:first-child, th:first-child { position:sticky; left:0; background:#f9fafb; z-index:6; text-align:left; padding-left:12px; }
+      td.ok { color:#0a8a3c; font-weight:700; cursor:pointer; }
+      td.miss { color:#e03e2d; font-weight:700; cursor:pointer; }
     </style>
   </head>
   <body>
@@ -499,32 +478,25 @@ app.get('/stats', (req, res) => {
         <label for="month">選擇月份：</label>
         <input type="month" id="month" value="${selectedMonth}" onchange="changeMonth()">
       </div>
+      <a id="downloadExcelBtn" class="download-btn" href="/stats/download?month=${selectedMonth}">⬇️ 下載 Excel</a>
     </div>
 
     <h2>${year}年${month}月 台北南區勤前上傳統計（僅上班日）</h2>
 
-    <!-- 逐日進度表（放在上方） -->
+    <!-- 逐日進度表（上方） -->
     <div class="table-wrap">
       <table>
-        <tr>
-          <th>大樓別</th>
-  `;
+        <tr><th>大樓別</th>`;
 
-  // 表頭：僅顯示上班日
-  filteredWorkdayList.forEach(date => {
-    html += `<th>${date}</th>`;
-  });
-
+  filteredWorkdayList.forEach(date => { html += `<th>${date}</th>`; });
   html += `</tr>`;
 
-  // 每棟逐日狀態
   buildings.forEach(building => {
     html += `<tr><td>${building}</td>`;
     filteredWorkdayList.forEach(date => {
-      const folderName = `${building}-${date}`;
-      const folderPath = path.join(uploadsPath, folderName);
+      const folderPath = path.join(uploadsPath, `${building}-${date}`);
       const exists = fs.existsSync(folderPath);
-      html += `<td class="${exists ? 'ok' : 'miss'}" onclick="viewGallery('${building}', '${date}')">${exists ? '✅' : '⛔'}</td>`;
+      html += `<td class="${exists ? 'ok' : 'miss'}" onclick="viewGallery('${building}','${date}')">${exists ? '✅' : '⛔'}</td>`;
     });
     html += `</tr>`;
   });
@@ -533,45 +505,33 @@ app.get('/stats', (req, res) => {
       </table>
     </div>
 
-    <!-- 統計摘要（放在下方） -->
+    <!-- 摘要（下方） -->
     <div class="summary">
       <div>本月共 <strong>${buildings.length}</strong> 棟大樓，實際上班日 <strong>${filteredWorkdayList.length}</strong> 天（排除週末${holidayList.length ? '與指定假日' : ''}）。</div>
-      <div style="margin-top:8px;" class="summary-grid">
-  `;
+      <div style="margin-top:8px;" class="summary-grid">`;
 
-  // 摘要卡片（每棟上傳率）
   buildings.forEach(b => {
     const uploaded = buildingStats[b];
     const denom = filteredWorkdayList.length || 1;
     const rate = ((uploaded / denom) * 100).toFixed(1);
     const warn = denom > 0 && rate < 80 ? ' ⚠️' : '';
-    html += `<div class="card"><strong>${b}</strong><div style="margin-top:6px;">${uploaded}/${filteredWorkdayList.length} 天</div><div style="color:#666; margin-top:6px;">上傳率：${rate}%${warn}</div></div>`;
+    html += `<div class="card"><strong>${b}</strong><div style="margin-top:6px;">${uploaded}/${filteredWorkdayList.length} 天</div><div style="color:#666;margin-top:6px;">上傳率：${rate}%${warn}</div></div>`;
   });
 
   html += `
       </div>
-      <div style="margin-top:10px; color:#666;">已排除假日： ${holidayList.length ? holidayList.join(', ') : '無'}</div>
+      <div style="margin-top:10px;color:#666;">已排除假日： ${holidayList.length ? holidayList.join(', ') : '無'}</div>
     </div>
 
     <script>
       function changeMonth() {
         const m = document.getElementById('month').value;
+        document.getElementById('downloadExcelBtn').href = '/stats/download?month=' + m;
         window.location.href = '/stats?month=' + m;
       }
-
       function viewGallery(building, date) {
         window.open('/gallery?building=' + encodeURIComponent(building) + '&date=' + date, '_blank');
       }
-
-      document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('backHistory')?.addEventListener('click', () => {
-          if (window.history.length > 1) {
-            window.history.back();
-          } else {
-            window.location.href = '/';
-          }
-        });
-      });
     </script>
   </body>
   </html>
@@ -621,6 +581,117 @@ app.get('/download-folder', (req, res) => {
   archive.pipe(res);
   archive.finalize();
 });
+
+// 在勤前上傳統計頁面新增下載EXCEL統計表
+const ExcelJS = require('exceljs');
+
+app.get('/stats/download', async (req, res) => {
+  try {
+    const uploadsPath = UPLOADS_ROOT;
+    const buildings = [
+      '松山金融', '前瞻金融', '全球民權', '產物大樓',
+      '芷英大樓', '華航大樓', '南京科技', '互助營造',
+      '摩天大樓', '新莊農會', '儒鴻企業', '新板傑仕堡',
+      '新板金融', '桃園金融', '新竹大樓', '竹科大樓', '頭份大樓'
+    ];
+
+    const now = new Date();
+    const selectedMonth = req.query.month || now.toISOString().slice(0, 7); // YYYY-MM
+    const [year, month] = selectedMonth.split('-');
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const workdayList = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayStr = String(day).padStart(2, '0');
+      const monthStr = String(month).padStart(2, '0');
+      const dateStr = `${year}-${monthStr}-${dayStr}`;
+      const dateObj = new Date(`${year}-${monthStr}-${dayStr}`);
+      const dow = dateObj.getDay();
+      if (dow >= 1 && dow <= 5) workdayList.push(dateStr);
+    }
+
+    let holidayListRaw = ['2025-10-06', '114/10/10'];
+    if (req.query.holidays) {
+      holidayListRaw = holidayListRaw.concat(req.query.holidays.split(',').map(s => s.trim()).filter(Boolean));
+    }
+    function normalizeHoliday(h) {
+      if (!h) return null;
+      h = h.trim();
+      if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(h)) {
+        const parts = h.split('-');
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      }
+      const m2 = h.match(/^(\d{2,3})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if (m2) {
+        const gy = parseInt(m2[1], 10) + 1911;
+        return `${gy}-${String(m2[2]).padStart(2, '0')}-${String(m2[3]).padStart(2, '0')}`;
+      }
+      return null;
+    }
+    const holidayList = Array.from(new Set(holidayListRaw.map(normalizeHoliday).filter(Boolean)));
+    const filteredWorkdayList = workdayList.filter(d => !holidayList.includes(d));
+
+    const buildingStats = {};
+    buildings.forEach(building => {
+      let count = 0;
+      filteredWorkdayList.forEach(date => {
+        const folderPath = path.join(uploadsPath, `${building}-${date}`);
+        if (fs.existsSync(folderPath)) count++;
+      });
+      buildingStats[building] = count;
+    });
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'System';
+    wb.created = new Date();
+
+    const summary = wb.addWorksheet('摘要');
+    summary.columns = [
+      { header: '大樓', key: 'building', width: 24 },
+      { header: '已上傳天數', key: 'uploaded', width: 16 },
+      { header: '應上班天數', key: 'workdays', width: 16 },
+      { header: '上傳率(%)', key: 'rate', width: 12 }
+    ];
+    summary.getRow(1).font = { bold: true };
+    const denom = filteredWorkdayList.length || 0;
+    buildings.forEach(b => {
+      const uploaded = buildingStats[b] || 0;
+      const rate = denom > 0 ? ((uploaded / denom) * 100) : 0;
+      summary.addRow({ building: b, uploaded: uploaded, workdays: denom, rate: Math.round(rate * 10) / 10 });
+    });
+
+    const detail = wb.addWorksheet('逐日進度');
+    const cols = [{ header: '大樓', key: 'building', width: 24 }];
+    filteredWorkdayList.forEach(d => cols.push({ header: d, key: d, width: 12 }));
+    detail.columns = cols;
+    detail.getRow(1).font = { bold: true };
+
+    buildings.forEach(b => {
+      const row = { building: b };
+      filteredWorkdayList.forEach(d => {
+        const folderPath = path.join(uploadsPath, `${b}-${d}`);
+        row[d] = fs.existsSync(folderPath) ? '✅' : '⛔';
+      });
+      detail.addRow(row);
+    });
+
+    const meta = wb.addWorksheet('參數');
+    meta.addRow(['month', selectedMonth]);
+    meta.addRow(['generatedAt', new Date().toISOString()]);
+    meta.addRow(['excludedHolidays', holidayList.join(',') || '無']);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    const filename = `上傳統計_${selectedMonth}.xlsx`;
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('generate excel error', err);
+    res.status(500).send('產生 Excel 發生錯誤');
+  }
+});
+
 
 
 app.listen(PORT, () => {
