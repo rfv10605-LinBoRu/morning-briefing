@@ -7,6 +7,9 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const archiver = require('archiver');
+
+
 // 以環境變數為主，Railway 上請設定 UPLOADS_ROOT=/data/uploads（或你設定的 mount path）
 const UPLOADS_ROOT = path.resolve(process.env.UPLOADS_ROOT || path.join(__dirname, 'uploads'));
 
@@ -51,17 +54,136 @@ app.get('/gallery', (req, res) => {
       <meta charset="UTF-8">
       <title>勤前照片上傳預覽</title>
       <style>
-        body { font-family: sans-serif; padding: 20px; }
-        h2, h3 { color: #333; }
-        .preview-img { width: 150px; height: auto; margin: 10px; cursor: pointer; transition: transform 0.2s ease; }
-        .preview-img.zoom { transform: scale(3); z-index: 999; position: relative; }
-        input[type="date"] { margin-bottom: 20px; padding: 5px; }
-        .img-block { display: inline-block; text-align: center; margin: 10px; }
-        button { margin-top: 5px; padding: 5px 10px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #c0392b; }
+        body {
+          font-family: sans-serif;
+          padding: 20px;
+          margin: 0;
+          background-color: #f9f9f9;
+        }
+
+        h2, h3 {
+          color: #333;
+          margin-top: 20px;
+        }
+
+        .controls {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .back-btn {
+          display: inline-block;
+          padding: 8px 12px;
+           background: #007bff;
+          color: #fff;
+          border-radius: 6px;
+          text-decoration: none;
+          cursor: pointer;
+        }
+
+        input[type="date"] {
+         margin-bottom: 20px;
+          padding: 6px;
+          font-size: 16px;
+        }
+
+        .folder-block {
+          background-color: #fff;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 20px;
+        }
+
+        .folder-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .img-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 10px;
+        }
+
+        .img-block {
+          width: 150px;
+          text-align: center;
+        }
+
+        .preview-img {
+          width: 100%;
+          height: auto;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        }
+
+        .preview-img.zoom {
+          transform: scale(3);
+          z-index: 999;
+          position: relative;
+        }
+
+        .action-btn {
+         margin-top: 6px;
+          padding: 6px 10px;
+          font-size: 14px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .download-btn {
+          background-color: #2ecc71;
+          color: white;
+        }
+
+        .delete-btn {
+          background-color: #e74c3c;
+          color: white;
+        }
+
+        .download-folder-btn {
+          background-color: #3498db;
+          color: white;
+          padding: 8px 12px;
+          margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+          .img-block {
+            width: 45%;
+          }
+
+          .action-btn {
+            font-size: 12px;
+            padding: 5px 8px;
+          }
+
+          .download-folder-btn {
+            width: 100%;
+          }
+        }
       </style>
+
     </head>
     <body>
+      <div class="controls">
+      </div>
+        <div>
+          <a id="backLink" class="back-btn" href="/">← 回到台北南區勤前照片上傳系統</a>
+          <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">台北南區勤前上傳統計</a>
+        </div>
+
       <h2>勤前照片上傳預覽</h2>
       <label for="date">選擇日期：</label>
       <input type="date" id="date" value="${date}" onchange="filterByDate()">
@@ -73,22 +195,64 @@ app.get('/gallery', (req, res) => {
     folders.forEach(folder => {
       const folderPath = path.join(uploadsPath, folder);
       const files = fs.readdirSync(folderPath).filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
-      html += `<h3>${folder}</h3>`;
+
+      html += `
+      <div class="folder-block">
+        <div class="folder-header">
+          <h3>${folder}</h3>
+          <button class="download-folder-btn" onclick="downloadFolder('${folder}')">📦 下載整組 ${folder}</button>
+        </div>
+        <div class="img-grid">
+    `;
+
       files.forEach(file => {
         const imgUrl = encodeURI(`/uploads/${folder}/${file}`);
         html += `
-          <div class="img-block">
-            <img src="${imgUrl}" class="preview-img">
-            <br>
-            <button onclick="deleteImage('${folder}', '${file}')">刪除</button>
-          </div>
-        `;
+        <div class="img-block">
+          <img src="${imgUrl}" class="preview-img">
+          <br>
+          <a href="${imgUrl}" download="${folder}-${file}">
+            <button class="action-btn download-btn">下載</button>
+          </a>
+          <button class="action-btn delete-btn" onclick="deleteImage('${folder}', '${file}')">刪除</button>
+        </div>
+      `;
       });
+
+      html += `</div></div>`;
     });
   }
 
+
   html += `
       <script>
+        // 回上一頁按鈕：優先 history.back()，若無則用帶參數的首頁連結
+        document.getElementById('backHistory').addEventListener('click', () => {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            // fallback to homepage
+            window.location.href = buildReturnUrl();
+          }
+        });
+
+        // 將 date/building 帶回首頁（若有）
+        function buildReturnUrl() {
+          const params = new URLSearchParams(location.search);
+          const date = params.get('date');
+          const building = params.get('building');
+          const url = new URL('/', location.origin);
+          if (date) url.searchParams.set('date', date);
+          if (building) url.searchParams.set('building', building);
+          return url.toString();
+        }
+
+        // 同步設定回到首頁的連結（讓直接點擊也帶參數）
+        (function setBackLink() {
+          const backLink = document.getElementById('backLink');
+          backLink.href = buildReturnUrl();
+        })();
+
         document.addEventListener("DOMContentLoaded", function () {
           const images = document.querySelectorAll(".preview-img");
           images.forEach(img => {
@@ -129,6 +293,16 @@ app.get('/gallery', (req, res) => {
             console.error(err);
           });
         }
+
+        function downloadFolder(folder) {
+          const link = document.createElement('a');
+          link.href = '/download-folder?folder=' + encodeURIComponent(folder);
+          link.download = folder + '.zip';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
       </script>
     </body>
     </html>
@@ -212,7 +386,7 @@ app.post('/delete-image', (req, res) => {
   }
 });
 
-// 每日上傳統計
+// 每日上傳統計（僅上班日，逐日進度表在上方、摘要在下方）
 app.get('/stats', (req, res) => {
   const uploadsPath = UPLOADS_ROOT;
   const buildings = [
@@ -223,63 +397,189 @@ app.get('/stats', (req, res) => {
   ];
 
   const now = new Date();
-  const selectedMonth = req.query.month || now.toISOString().slice(0, 7);
+  const selectedMonth = req.query.month || now.toISOString().slice(0, 7); // YYYY-MM
   const [year, month] = selectedMonth.split('-');
   const daysInMonth = new Date(year, month, 0).getDate();
 
+  // 建立完整日期清單與上班日清單（週一~週五）
   const dateList = [];
+  const workdayList = [];
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(month).padStart(2, '0');
+    const dateStr = `${year}-${monthStr}-${dayStr}`;
     dateList.push(dateStr);
+
+    const dateObj = new Date(`${year}-${monthStr}-${dayStr}`);
+    const dow = dateObj.getDay(); // 0=Sun,6=Sat
+    if (dow >= 1 && dow <= 5) workdayList.push(dateStr);
   }
 
+  // ===== 假日清單（支援 YYYY-MM-DD 與 ROC 格式） =====
+  let holidayListRaw = [
+    '2025-10-06', '114/10/10'
+    // 例：'2025-11-03', '114/11/01'
+  ];
+  if (req.query.holidays) {
+    holidayListRaw = holidayListRaw.concat(
+      req.query.holidays.split(',').map(s => s.trim()).filter(Boolean)
+    );
+  }
+
+  function normalizeHoliday(h) {
+    if (!h) return null;
+    h = h.trim();
+    // 西元 YYYY-MM-DD
+    if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(h)) {
+      const parts = h.split('-');
+      const y = parts[0];
+      const m = parts[1].padStart(2, '0');
+      const d = parts[2].padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    // ROC 114/11/1、114-11-01
+    const m2 = h.match(/^(\d{2,3})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (m2) {
+      const rocYear = parseInt(m2[1], 10);
+      const mm = String(m2[2]).padStart(2, '0');
+      const dd = String(m2[3]).padStart(2, '0');
+      const gy = rocYear + 1911;
+      return `${gy}-${mm}-${dd}`;
+    }
+    return null;
+  }
+
+  const holidayList = Array.from(new Set(holidayListRaw.map(normalizeHoliday).filter(Boolean)));
+
+  // 從 workdayList 排除假日
+  const filteredWorkdayList = workdayList.filter(d => !holidayList.includes(d));
+
+  // 統計每棟大樓在上班日的上傳次數
+  const buildingStats = {};
+  buildings.forEach(building => {
+    let count = 0;
+    filteredWorkdayList.forEach(date => {
+      const folderName = `${building}-${date}`;
+      const folderPath = path.join(uploadsPath, folderName);
+      if (fs.existsSync(folderPath)) count++;
+    });
+    buildingStats[building] = count;
+  });
+
+  // 產生 HTML（逐日進度表在上方，摘要在下方）
   let html = `
   <html>
   <head>
     <meta charset="UTF-8">
-    <title>${year}年${month}月 上傳統計</title>
+    <title>${year}年${month}月 上傳統計（僅上班日）</title>
     <style>
-      body { font-family: sans-serif; padding: 20px; }
-      table { display: block; overflow-x: auto; white-space: nowrap; border-collapse: collapse; }
-      th, td { border: 1px solid #ccc; padding: 5px 10px; text-align: center; white-space: nowrap; }
-      th { background-color: #f0f0f0; }
-      td.ok { color: green; font-weight: bold; }
-      td.miss { color: red; font-weight: bold; }
-      input[type="month"] { margin-bottom: 20px; padding: 5px; }
+      body { font-family: sans-serif; padding: 20px; margin:0; background:#f7f8fa; color:#222; }
+      .header { display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+      .back-btn { display:inline-block; padding:8px 12px; background:#007bff; color:#fff; border-radius:6px; text-decoration:none; cursor:pointer; }
+      h2 { margin:8px 0 12px 0; }
+      .summary { background:#fff; border:1px solid #e6e6e6; padding:12px; border-radius:8px; margin-top:12px; }
+      .summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+      .card { background:#fff; border:1px solid #eaeaea; padding:10px; border-radius:8px; }
+      input[type="month"] { padding:6px; }
+
+      .table-wrap { background:#fff; border:1px solid #e6e6e6; border-radius:8px; padding:8px; max-height:66vh; overflow:auto; }
+      table { border-collapse: collapse; width:100%; min-width:700px; }
+      th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; white-space: nowrap; background-color: #fff; }
+      th { background-color: #f3f6fb; position: sticky; top: 0; z-index: 5; font-weight: 600; }
+      td:first-child, th:first-child { position: sticky; left: 0; background-color: #f9fafb; z-index: 6; text-align: left; padding-left: 12px; }
+      td.ok { color: #0a8a3c; font-weight: 700; cursor: pointer; }
+      td.miss { color: #e03e2d; font-weight: 700; cursor: pointer; }
+      tr:hover td { background-color: #fcfdfe; }
     </style>
   </head>
   <body>
-    <h2>${year}年${month}月 台北南區勤前上傳統計</h2>
-    <label for="month">選擇月份：</label>
-    <input type="month" id="month" value="${selectedMonth}" onchange="changeMonth()">
+    <div class="header">
+      <a id="backLink" class="back-btn" href="/">← 回到台北南區勤前照片上傳系統</a>
+      <div>
+        <label for="month">選擇月份：</label>
+        <input type="month" id="month" value="${selectedMonth}" onchange="changeMonth()">
+      </div>
+    </div>
+
+    <h2>${year}年${month}月 台北南區勤前上傳統計（僅上班日）</h2>
+
+    <!-- 逐日進度表（放在上方） -->
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>大樓別</th>
+  `;
+
+  // 表頭：僅顯示上班日
+  filteredWorkdayList.forEach(date => {
+    html += `<th>${date}</th>`;
+  });
+
+  html += `</tr>`;
+
+  // 每棟逐日狀態
+  buildings.forEach(building => {
+    html += `<tr><td>${building}</td>`;
+    filteredWorkdayList.forEach(date => {
+      const folderName = `${building}-${date}`;
+      const folderPath = path.join(uploadsPath, folderName);
+      const exists = fs.existsSync(folderPath);
+      html += `<td class="${exists ? 'ok' : 'miss'}" onclick="viewGallery('${building}', '${date}')">${exists ? '✅' : '⛔'}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `
+      </table>
+    </div>
+
+    <!-- 統計摘要（放在下方） -->
+    <div class="summary">
+      <div>本月共 <strong>${buildings.length}</strong> 棟大樓，實際上班日 <strong>${filteredWorkdayList.length}</strong> 天（排除週末${holidayList.length ? '與指定假日' : ''}）。</div>
+      <div style="margin-top:8px;" class="summary-grid">
+  `;
+
+  // 摘要卡片（每棟上傳率）
+  buildings.forEach(b => {
+    const uploaded = buildingStats[b];
+    const denom = filteredWorkdayList.length || 1;
+    const rate = ((uploaded / denom) * 100).toFixed(1);
+    const warn = denom > 0 && rate < 80 ? ' ⚠️' : '';
+    html += `<div class="card"><strong>${b}</strong><div style="margin-top:6px;">${uploaded}/${filteredWorkdayList.length} 天</div><div style="color:#666; margin-top:6px;">上傳率：${rate}%${warn}</div></div>`;
+  });
+
+  html += `
+      </div>
+      <div style="margin-top:10px; color:#666;">已排除假日： ${holidayList.length ? holidayList.join(', ') : '無'}</div>
+    </div>
+
     <script>
       function changeMonth() {
         const m = document.getElementById('month').value;
         window.location.href = '/stats?month=' + m;
       }
+
+      function viewGallery(building, date) {
+        window.open('/gallery?building=' + encodeURIComponent(building) + '&date=' + date, '_blank');
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('backHistory')?.addEventListener('click', () => {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = '/';
+          }
+        });
+      });
     </script>
-    <table>
-      <tr><th>大樓別</th>`;
+  </body>
+  </html>
+  `;
 
-  dateList.forEach(date => {
-    html += `<th>${date}</th>`;
-  });
-  html += `</tr>`;
-
-  buildings.forEach(building => {
-    html += `<tr><td>${building}</td>`;
-    dateList.forEach(date => {
-      const folderName = `${building}-${date}`;
-      const folderPath = path.join(uploadsPath, folderName);
-      const exists = fs.existsSync(folderPath);
-      html += `<td class="${exists ? 'ok' : 'miss'}">${exists ? '✅' : '❌'}</td>`;
-    });
-    html += `</tr>`;
-  });
-
-  html += `</table></body></html>`;
   res.send(html);
 });
+
 
 // 臨時搬移舊 uploads 到永久 UPLOADS_ROOT（執行一次後建議移除此 route）
 app.post('/admin/migrate-uploads', (req, res) => {
@@ -304,6 +604,24 @@ app.post('/admin/migrate-uploads', (req, res) => {
     return res.status(500).json({ migrated: false, error: err.message });
   }
 });
+
+app.get('/download-folder', (req, res) => {
+  const folder = req.query.folder;
+  if (!folder) return res.status(400).send('缺少 folder 參數');
+
+  const folderPath = path.join(UPLOADS_ROOT, folder);
+  if (!fs.existsSync(folderPath)) return res.status(404).send('資料夾不存在');
+
+  const encodedFilename = encodeURIComponent(folder + '.zip');
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFilename}`);
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.directory(folderPath, false);
+  archive.pipe(res);
+  archive.finalize();
+});
+
 
 app.listen(PORT, () => {
   console.log(`伺服器啟動於 http://localhost:${PORT} ; UPLOADS_ROOT=${UPLOADS_ROOT}`);
