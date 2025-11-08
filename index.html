@@ -101,6 +101,39 @@
     button:hover {
       background-color: #0056b3;
     }
+
+    .info-panel {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 30px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      max-width: 800px;
+    }
+
+    .info-panel h3 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .info-row {
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .info-row ul {
+      padding-left: 20px;
+      margin: 6px 0;
+    }
+
+    .reminder {
+      background: #f9f9f9;
+      padding: 10px;
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+      color: #444;
+    }
   </style>
 </head>
 
@@ -111,6 +144,33 @@
   </div>
   <!-- 原本的標題 -->
   <h2>台北南區勤前照片上傳系統</h2>
+
+  <div class="info-panel">
+    <h3>今日資訊看板</h3>
+    <div class="info-row">
+      <strong>📅 今日日期：</strong>
+      <span id="todayDate">載入中...</span>
+    </div>
+    <div class="info-row">
+      <strong>🌤 天氣預報：</strong>
+      <ul id="weatherList">
+        <li>台北市：載入中...</li>
+        <li>新北市：載入中...</li>
+        <li>桃園市：載入中...</li>
+        <li>新竹市：載入中...</li>
+        <li>苗栗縣：載入中...</li>
+      </ul>
+    </div>
+    <div class="info-row">
+      <strong>💡 區經理提醒：</strong>
+      <div class="reminder">
+        一、本系統預計上傳至114.11.28(五)後再另行公布。<br>
+        二、請確保照片清晰、完整，盡量控制每天上傳4至6張(包含勤前指示單)。<br>
+        三、若遇大樓設備異常，請立即通報區群組並拍照記錄。
+      </div>
+    </div>
+  </div>
+
   <h3>請先選擇所屬大樓別</h3>
   <select name="building" id="building">
     <option value="" disabled selected hidden>請選擇</option>
@@ -264,6 +324,48 @@
     }
   </script>
 
+  <!-- 區經理提醒區塊 -->
+  <script>
+    // 顯示今日日期（國曆）
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('todayDate').textContent = `${yyyy}年${mm}月${dd}日`;
+
+    // 簡易天氣預報（使用 Open-Meteo API）
+    const cities = [
+      { name: '台北市', lat: 25.03, lon: 121.56 },
+      { name: '新北市', lat: 25.01, lon: 121.46 },
+      { name: '桃園市', lat: 24.99, lon: 121.31 },
+      { name: '新竹市', lat: 24.81, lon: 120.97 },
+      { name: '苗栗縣', lat: 24.56, lon: 120.82 }
+    ];
+
+    async function loadWeather() {
+      const list = document.getElementById('weatherList');
+      list.innerHTML = '';
+      for (const city of cities) {
+        try {
+          const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&hourly=precipitation`);
+          const data = await resp.json();
+          const weather = data.current_weather;
+          const rain = data.hourly?.precipitation?.[0] || 0;
+          const rainText = rain > 0 ? `🌧 可能降雨 (${rain}mm)` : `☀ 無降雨`;
+          const desc = `氣溫 ${weather.temperature}°C，風速 ${weather.windspeed} km/h，${rainText}`;
+          const li = document.createElement('li');
+          li.textContent = `${city.name}：${desc}`;
+          list.appendChild(li);
+        } catch (err) {
+          const li = document.createElement('li');
+          li.textContent = `${city.name}：無法取得資料`;
+          list.appendChild(li);
+        }
+      }
+    }
+
+    loadWeather();
+  </script>
 
 
 </body>
