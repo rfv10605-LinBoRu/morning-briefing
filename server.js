@@ -1,19 +1,21 @@
 // server.js（請以此檔案覆蓋或替換你現有內容）
+// ====== 套件載入 ======
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const fsExtra = require('fs-extra');
+const archiver = require('archiver');
+const { v4: uuidv4 } = require('uuid');
+const ExcelJS = require('exceljs');
+const cors = require('cors');
 
+
+// ====== 基本設定 ======
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const archiver = require('archiver');
-
-
-// 以環境變數為主，Railway 上請設定 UPLOADS_ROOT=/data/uploads（或你設定的 mount path）
 const UPLOADS_ROOT = path.resolve(process.env.UPLOADS_ROOT || path.join(__dirname, 'uploads'));
-
-// 啟動時建立必要目錄（uploads root 與 tmp）
+console.log('UPLOADS_ROOT =', UPLOADS_ROOT);
 try {
   fs.mkdirSync(UPLOADS_ROOT, { recursive: true });
   fs.mkdirSync(path.join(UPLOADS_ROOT, 'tmp'), { recursive: true });
@@ -23,17 +25,25 @@ try {
   process.exit(1);
 }
 
-// multer 暫存設定，暫存在永久磁碟下的 tmp（避免寫到 container ephemeral）
+
+// ====== Middleware ======
+app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(UPLOADS_ROOT));
+app.use(express.static(path.join(__dirname, 'public')));
+
+
+// ====== multer 設定（暫存） ======
 const upload = multer({ dest: path.join(UPLOADS_ROOT, 'tmp') });
 
-const cors = require('cors');
 
 // 首頁
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use(cors());
 
 // 圖片牆預覽頁面
 app.get('/gallery', (req, res) => {
@@ -128,9 +138,17 @@ app.get('/gallery', (req, res) => {
         }
 
         .preview-img.zoom {
-          transform: scale(3);
-          z-index: 999;
-          position: relative;
+         transform: scale(3);
+         z-index: 999;
+         position: relative;
+         box-shadow: 0 0 12px rgba(0,0,0,0.3);
+         background: #fff;
+         position: fixed;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%) scale(3);
+         max-width: 90vw;
+         max-height: 90vh;
         }
 
         .action-btn {
@@ -180,8 +198,8 @@ app.get('/gallery', (req, res) => {
       <div class="controls">
       </div>
         <div>
-          <a id="backLink" class="back-btn" href="/">← 回到台北南區勤前照片上傳系統</a>
-          <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">台北南區勤前上傳統計</a>
+          <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+          <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">勤前上傳統計</a>
         </div>
 
       <h2>勤前照片上傳預覽</h2>
@@ -212,7 +230,6 @@ app.get('/gallery', (req, res) => {
           <img src="${imgUrl}" class="preview-img">
           <br>
           <a href="${imgUrl}" download="${folder}-${file}">
-            <button class="action-btn download-btn">下載</button>
           </a>
           <button class="action-btn delete-btn" onclick="deleteImage('${folder}', '${file}')">刪除</button>
         </div>
@@ -254,8 +271,19 @@ app.get('/gallery', (req, res) => {
         })();
 
         document.addEventListener("DOMContentLoaded", function () {
-          const images = document.querySelectorAll(".preview-img");
-          images.forEach(img => {
+          const backBtn = document.getElementById('backHistory');
+          if (backBtn) {
+            backBtn.addEventListener('click', () => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = buildReturnUrl();
+              }
+            });
+          }
+
+        const images = document.querySelectorAll(".preview-img");
+        images.forEach(img => {
             img.addEventListener("click", () => {
               img.classList.toggle("zoom");
             });
@@ -311,14 +339,6 @@ app.get('/gallery', (req, res) => {
   res.send(html);
 });
 
-// 解析表單欄位
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// 靜態資源：根目錄與永久 uploads
-app.use(express.static(__dirname));
-app.use('/uploads', express.static(UPLOADS_ROOT));
-app.use(express.static(path.join(__dirname, 'public')));
 
 // 圖片上傳
 app.post('/upload-image', upload.single('image'), (req, res) => {
@@ -473,12 +493,12 @@ app.get('/stats', (req, res) => {
   </head>
   <body>
     <div class="header">
-      <a id="backLink" class="back-btn" href="/">← 回到台北南區勤前照片上傳系統</a>
+      <a id="backLink" class="back-btn" href="/">回到主畫面</a>
       <div>
         <label for="month">選擇月份：</label>
         <input type="month" id="month" value="${selectedMonth}" onchange="changeMonth()">
       </div>
-      <a id="downloadExcelBtn" class="download-btn" href="/stats/download?month=${selectedMonth}">⬇️ 下載 Excel</a>
+      <a id="downloadExcelBtn" class="download-btn" href="/stats/download?month=${selectedMonth}">下載 Excel</a>
     </div>
 
     <h2>${year}年${month}月 台北南區勤前上傳統計（僅上班日）</h2>
@@ -583,7 +603,6 @@ app.get('/download-folder', (req, res) => {
 });
 
 // 在勤前上傳統計頁面新增下載EXCEL統計表
-const ExcelJS = require('exceljs');
 
 app.get('/stats/download', async (req, res) => {
   try {
@@ -694,6 +713,100 @@ app.get('/stats/download', async (req, res) => {
 
 
 
+
+
+
+// ====== 事件 API（主任手機上報） ======
+const readEventMeta = async (id) => {
+  const metaPath = path.join(UPLOADS_ROOT, id, 'meta.json');
+  if (!(await fsExtra.pathExists(metaPath))) return null;
+  return await fsExtra.readJson(metaPath);
+};
+const writeEventMeta = async (id, meta) => {
+  const dir = path.join(UPLOADS_ROOT, id);
+  await fsExtra.ensureDir(dir);
+  await fsExtra.writeJson(path.join(dir, 'meta.json'), meta, { spaces: 2 });
+};
+
+app.post('/api/events', async (req, res) => {
+  const { building, location, description, severity, reportedBy } = req.body || {};
+  if (!building || !location) return res.status(400).json({ error: 'missing building or location' });
+  const id = uuidv4();
+  const now = new Date().toISOString();
+  const event = {
+    id, building, location, description: description || '',
+    severity: severity || 'normal', reportedBy: reportedBy || '主任',
+    status: 'reported', createdAt: now, updatedAt: now, files: []
+  };
+  await writeEventMeta(id, event);
+  res.json({ ok: true, id });
+});
+
+const eventStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const eventId = req.params.id;
+    const dest = path.join(UPLOADS_ROOT, eventId);
+    await fsExtra.ensureDir(dest);
+    cb(null, dest);
+  },
+  filename: (req, file, cb) => {
+    const name = `${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
+    cb(null, name);
+  }
+});
+const eventUpload = multer({ storage: eventStorage });
+
+app.post('/api/events/:id/files', eventUpload.array('files', 20), async (req, res) => {
+  const eventId = req.params.id;
+  const meta = await readEventMeta(eventId);
+  if (!meta) return res.status(404).json({ error: 'event not found' });
+  const now = new Date().toISOString();
+  for (const f of req.files || []) {
+    meta.files.push({
+      filename: f.filename, originalname: f.originalname,
+      mimetype: f.mimetype, size: f.size, uploadedAt: now,
+      url: `/api/events/${eventId}/files/${encodeURIComponent(f.filename)}`
+    });
+  }
+  meta.updatedAt = now;
+  await writeEventMeta(eventId, meta);
+  res.json({ ok: true, files: meta.files });
+});
+
+app.get('/api/events/:id', async (req, res) => {
+  const meta = await readEventMeta(req.params.id);
+  if (!meta) return res.status(404).json({ error: 'not found' });
+  res.json(meta);
+});
+
+app.get('/api/events', async (req, res) => {
+  const buildingFilter = req.query.building;
+  const ids = await fsExtra.readdir(UPLOADS_ROOT);
+  const out = [];
+  for (const id of ids) {
+    try {
+      const meta = await readEventMeta(id);
+      if (!meta) continue;
+      if (buildingFilter && meta.building !== buildingFilter) continue;
+      out.push({
+        id: meta.id, building: meta.building, location: meta.location,
+        status: meta.status, createdAt: meta.createdAt, updatedAt: meta.updatedAt
+      });
+    } catch (e) { continue; }
+  }
+  out.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json(out.slice(0, 200));
+});
+
+app.get('/api/events/:id/files/:filename', async (req, res) => {
+  const { id, filename } = req.params;
+  if (filename.includes('..') || filename.includes('/')) return res.status(400).send('invalid filename');
+  const filePath = path.join(UPLOADS_ROOT, id, filename);
+  if (!(await fsExtra.pathExists(filePath))) return res.status(404).send('file not found');
+  res.sendFile(filePath);
+});
+
+// ====== 伺服器啟動 ======
 app.listen(PORT, () => {
-  console.log(`伺服器啟動於 http://localhost:${PORT} ; UPLOADS_ROOT=${UPLOADS_ROOT}`);
+  console.log(`✅ 伺服器啟動於 http://localhost:${PORT} ; UPLOADS_ROOT=${UPLOADS_ROOT}`);
 });

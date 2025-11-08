@@ -1,0 +1,21 @@
+{
+  "id": "b6764349-c249-423a-83c7-3920f3937076",
+  "building": "全球民權",
+  "location": "C棟",
+  "description": "淹水",
+  "severity": "normal",
+  "reportedBy": "主任",
+  "status": "reported",
+  "createdAt": "2025-11-08T02:12:39.528Z",
+  "updatedAt": "2025-11-08T02:12:42.250Z",
+  "files": [
+    {
+      "filename": "1762567962205_1762240313564-å¤åç§ç.jpg",
+      "originalname": "1762240313564-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 3126572,
+      "uploadedAt": "2025-11-08T02:12:42.250Z",
+      "url": "/api/events/b6764349-c249-423a-83c7-3920f3937076/files/1762567962205_1762240313564-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    }
+  ]
+}

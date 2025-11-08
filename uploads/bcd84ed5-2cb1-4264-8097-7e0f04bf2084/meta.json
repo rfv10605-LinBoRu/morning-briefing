@@ -1,0 +1,12 @@
+{
+  "id": "bcd84ed5-2cb1-4264-8097-7e0f04bf2084",
+  "building": "松山金融",
+  "location": "洗衣坊",
+  "description": "淹水",
+  "severity": "high",
+  "reportedBy": "主任",
+  "status": "reported",
+  "createdAt": "2025-11-07T16:35:51.421Z",
+  "updatedAt": "2025-11-07T16:35:51.421Z",
+  "files": []
+}
