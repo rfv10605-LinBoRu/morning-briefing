@@ -150,6 +150,8 @@
     <div class="info-row">
       <strong>📅 今日日期：</strong>
       <span id="todayDate">載入中...</span>
+      <span id="weekday">（星期載入中）</span>
+
     </div>
     <div class="info-row">
       <strong>🌤 天氣預報：</strong>
@@ -331,7 +333,9 @@
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     document.getElementById('todayDate').textContent = `${yyyy}年${mm}月${dd}日`;
+    document.getElementById('weekday').textContent = `（星期${weekdays[today.getDay()]}）`;
 
     // 簡易天氣預報（使用 Open-Meteo API）
     const cities = [
@@ -365,7 +369,14 @@
     }
 
     loadWeather();
+
+    // 紫外線指數（預設或串接 API）
+    document.getElementById('uvi').textContent = '中量級（預設）';
+    // 空氣品質（預設或串接 API）
+    document.getElementById('aqi').textContent = '良好（預設）';
+
   </script>
+
 
 
 </body>

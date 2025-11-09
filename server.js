@@ -717,36 +717,56 @@ app.get('/stats/download', async (req, res) => {
 
 
 // ====== 事件 API（主任手機上報） ======
+
+
+// Helper: 讀寫 meta.json
 const readEventMeta = async (id) => {
   const metaPath = path.join(UPLOADS_ROOT, id, 'meta.json');
   if (!(await fsExtra.pathExists(metaPath))) return null;
   return await fsExtra.readJson(metaPath);
 };
+
 const writeEventMeta = async (id, meta) => {
   const dir = path.join(UPLOADS_ROOT, id);
   await fsExtra.ensureDir(dir);
   await fsExtra.writeJson(path.join(dir, 'meta.json'), meta, { spaces: 2 });
 };
 
+// 建立事件
 app.post('/api/events', async (req, res) => {
-  const { building, location, description, severity, reportedBy } = req.body || {};
-  if (!building || !location) return res.status(400).json({ error: 'missing building or location' });
-  const id = uuidv4();
-  const now = new Date().toISOString();
-  const event = {
-    id, building, location, description: description || '',
-    severity: severity || 'normal', reportedBy: reportedBy || '主任',
-    status: 'reported', createdAt: now, updatedAt: now, files: []
-  };
-  await writeEventMeta(id, event);
-  res.json({ ok: true, id });
+  try {
+    const { building, location, description, severity, reportedBy } = req.body || {};
+    if (!building || !location) return res.status(400).json({ error: 'missing building or location' });
+
+    const id = uuidv4();
+    const now = new Date().toISOString();
+    const event = {
+      id,
+      building,
+      location,
+      description: description || '',
+      severity: severity || 'normal',
+      reportedBy: reportedBy || '主任',
+      status: 'reported',
+      createdAt: now,
+      updatedAt: now,
+      files: []
+    };
+
+    await writeEventMeta(id, event);
+    res.json({ ok: true, id });
+  } catch (err) {
+    console.error('create event error:', err);
+    res.status(500).json({ error: 'server error' });
+  }
 });
 
+// multer storage（同步建立資料夾）
 const eventStorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: (req, file, cb) => {
     const eventId = req.params.id;
     const dest = path.join(UPLOADS_ROOT, eventId);
-    await fsExtra.ensureDir(dest);
+    fsExtra.ensureDirSync(dest);
     cb(null, dest);
   },
   filename: (req, file, cb) => {
@@ -756,55 +776,97 @@ const eventStorage = multer.diskStorage({
 });
 const eventUpload = multer({ storage: eventStorage });
 
+// 上傳檔案
 app.post('/api/events/:id/files', eventUpload.array('files', 20), async (req, res) => {
-  const eventId = req.params.id;
-  const meta = await readEventMeta(eventId);
-  if (!meta) return res.status(404).json({ error: 'event not found' });
-  const now = new Date().toISOString();
-  for (const f of req.files || []) {
-    meta.files.push({
-      filename: f.filename, originalname: f.originalname,
-      mimetype: f.mimetype, size: f.size, uploadedAt: now,
-      url: `/api/events/${eventId}/files/${encodeURIComponent(f.filename)}`
-    });
-  }
-  meta.updatedAt = now;
-  await writeEventMeta(eventId, meta);
-  res.json({ ok: true, files: meta.files });
-});
+  try {
+    const eventId = req.params.id;
+    const meta = await readEventMeta(eventId);
+    if (!meta) return res.status(404).json({ error: 'event not found' });
 
-app.get('/api/events/:id', async (req, res) => {
-  const meta = await readEventMeta(req.params.id);
-  if (!meta) return res.status(404).json({ error: 'not found' });
-  res.json(meta);
-});
+    const now = new Date().toISOString();
+    const files = Array.isArray(req.files) ? req.files : [];
 
-app.get('/api/events', async (req, res) => {
-  const buildingFilter = req.query.building;
-  const ids = await fsExtra.readdir(UPLOADS_ROOT);
-  const out = [];
-  for (const id of ids) {
-    try {
-      const meta = await readEventMeta(id);
-      if (!meta) continue;
-      if (buildingFilter && meta.building !== buildingFilter) continue;
-      out.push({
-        id: meta.id, building: meta.building, location: meta.location,
-        status: meta.status, createdAt: meta.createdAt, updatedAt: meta.updatedAt
+    for (const f of files) {
+      meta.files.push({
+        filename: f.filename,
+        originalname: f.originalname,
+        mimetype: f.mimetype,
+        size: f.size,
+        uploadedAt: now,
+        url: `/api/events/${eventId}/files/${encodeURIComponent(f.filename)}`
       });
-    } catch (e) { continue; }
+    }
+
+    meta.updatedAt = now;
+    await writeEventMeta(eventId, meta);
+    res.json({ ok: true, files: meta.files });
+  } catch (err) {
+    console.error('upload files error:', err);
+    res.status(500).json({ error: 'upload error' });
   }
-  out.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.json(out.slice(0, 200));
 });
 
-app.get('/api/events/:id/files/:filename', async (req, res) => {
-  const { id, filename } = req.params;
-  if (filename.includes('..') || filename.includes('/')) return res.status(400).send('invalid filename');
-  const filePath = path.join(UPLOADS_ROOT, id, filename);
-  if (!(await fsExtra.pathExists(filePath))) return res.status(404).send('file not found');
-  res.sendFile(filePath);
+// 查詢單一事件
+app.get('/api/events/:id', async (req, res) => {
+  try {
+    const meta = await readEventMeta(req.params.id);
+    if (!meta) return res.status(404).json({ error: 'not found' });
+    res.json(meta);
+  } catch (err) {
+    console.error('get event error:', err);
+    res.status(500).json({ error: 'server error' });
+  }
 });
+
+// 查詢事件列表（可篩選 building）
+app.get('/api/events', async (req, res) => {
+  try {
+    const buildingFilter = req.query.building;
+    const ids = await fsExtra.readdir(UPLOADS_ROOT);
+    const out = [];
+
+    for (const id of ids) {
+      try {
+        const meta = await readEventMeta(id);
+        if (!meta) continue;
+        if (buildingFilter && meta.building !== buildingFilter) continue;
+        out.push({
+          id: meta.id,
+          building: meta.building,
+          location: meta.location,
+          status: meta.status,
+          createdAt: meta.createdAt,
+          updatedAt: meta.updatedAt
+        });
+      } catch (e) {
+        continue;
+      }
+    }
+
+    out.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json(out.slice(0, 200));
+  } catch (err) {
+    console.error('list events error:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+// 安全下載檔案
+app.get('/api/events/:id/files/:filename', async (req, res) => {
+  try {
+    const { id, filename } = req.params;
+    if (filename.includes('..') || filename.includes('/')) return res.status(400).send('invalid filename');
+
+    const filePath = path.join(UPLOADS_ROOT, id, filename);
+    if (!(await fsExtra.pathExists(filePath))) return res.status(404).send('file not found');
+
+    res.sendFile(filePath);
+  } catch (err) {
+    console.error('download file error:', err);
+    res.status(500).send('server error');
+  }
+});
+
 
 // ====== 伺服器啟動 ======
 app.listen(PORT, () => {
