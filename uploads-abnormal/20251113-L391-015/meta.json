@@ -1,0 +1,165 @@
+{
+  "id": "3bf161d5-9eca-47ba-8ca0-9f9d39ef7661",
+  "displayId": "20251113-L391-015",
+  "building": "松山金融",
+  "type": "大樓災害事件",
+  "subtype": "地震",
+  "description": "異常說明：\n初步判斷：\n處理方式：\n建議事項：",
+  "reportedBy": "林泊儒",
+  "location": "淡江學舍C棟2F洗衣房",
+  "occurTime": "2025-11-13T22:52",
+  "phenomenon": "",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "C棟主幹管堵塞異常報告",
+  "status": "closed",
+  "createdAt": "2025-11-13T14:52:44.692Z",
+  "updatedAt": "2025-11-13T15:03:12.135Z",
+  "files": [
+    {
+      "filename": "1763045564714_1762305196448-å¤åæç¤ºå®.jpg",
+      "originalname": "1762305196448-å¤åæç¤ºå®.jpg",
+      "mimetype": "image/jpeg",
+      "size": 344668,
+      "uploadedAt": "2025-11-13T14:52:44.781Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564714_1762305196448-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A6%C2%8C%C2%87%C3%A7%C2%A4%C2%BA%C3%A5%C2%96%C2%AE.jpg"
+    },
+    {
+      "filename": "1763045564722_1762305196530-å¤åç§ç.jpg",
+      "originalname": "1762305196530-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 407176,
+      "uploadedAt": "2025-11-13T14:52:44.781Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564722_1762305196530-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564760_1762305201467-å¤åç§ç.jpg",
+      "originalname": "1762305201467-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 468493,
+      "uploadedAt": "2025-11-13T14:52:44.781Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564760_1762305201467-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564767_1762305204105-å¤åç§ç.jpg",
+      "originalname": "1762305204105-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 527909,
+      "uploadedAt": "2025-11-13T14:52:44.781Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564767_1762305204105-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564798_1762305196448-å¤åæç¤ºå®.jpg",
+      "originalname": "1762305196448-å¤åæç¤ºå®.jpg",
+      "mimetype": "image/jpeg",
+      "size": 344668,
+      "uploadedAt": "2025-11-13T14:52:44.835Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564798_1762305196448-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A6%C2%8C%C2%87%C3%A7%C2%A4%C2%BA%C3%A5%C2%96%C2%AE.jpg"
+    },
+    {
+      "filename": "1763045564804_1762305196530-å¤åç§ç.jpg",
+      "originalname": "1762305196530-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 407176,
+      "uploadedAt": "2025-11-13T14:52:44.835Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564804_1762305196530-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564813_1762305201467-å¤åç§ç.jpg",
+      "originalname": "1762305201467-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 468493,
+      "uploadedAt": "2025-11-13T14:52:44.835Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564813_1762305201467-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564823_1762305204105-å¤åç§ç.jpg",
+      "originalname": "1762305204105-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 527909,
+      "uploadedAt": "2025-11-13T14:52:44.835Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564823_1762305204105-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564847_1762305196448-å¤åæç¤ºå®.jpg",
+      "originalname": "1762305196448-å¤åæç¤ºå®.jpg",
+      "mimetype": "image/jpeg",
+      "size": 344668,
+      "uploadedAt": "2025-11-13T14:52:44.870Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564847_1762305196448-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A6%C2%8C%C2%87%C3%A7%C2%A4%C2%BA%C3%A5%C2%96%C2%AE.jpg"
+    },
+    {
+      "filename": "1763045564853_1762305196530-å¤åç§ç.jpg",
+      "originalname": "1762305196530-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 407176,
+      "uploadedAt": "2025-11-13T14:52:44.870Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564853_1762305196530-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564857_1762305201467-å¤åç§ç.jpg",
+      "originalname": "1762305201467-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 468493,
+      "uploadedAt": "2025-11-13T14:52:44.870Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564857_1762305201467-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564862_1762305204105-å¤åç§ç.jpg",
+      "originalname": "1762305204105-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 527909,
+      "uploadedAt": "2025-11-13T14:52:44.870Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564862_1762305204105-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564881_1762305196448-å¤åæç¤ºå®.jpg",
+      "originalname": "1762305196448-å¤åæç¤ºå®.jpg",
+      "mimetype": "image/jpeg",
+      "size": 344668,
+      "uploadedAt": "2025-11-13T14:52:44.924Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564881_1762305196448-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A6%C2%8C%C2%87%C3%A7%C2%A4%C2%BA%C3%A5%C2%96%C2%AE.jpg"
+    },
+    {
+      "filename": "1763045564884_1762305196530-å¤åç§ç.jpg",
+      "originalname": "1762305196530-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 407176,
+      "uploadedAt": "2025-11-13T14:52:44.924Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564884_1762305196530-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564912_1762305201467-å¤åç§ç.jpg",
+      "originalname": "1762305201467-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 468493,
+      "uploadedAt": "2025-11-13T14:52:44.924Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564912_1762305201467-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    },
+    {
+      "filename": "1763045564916_1762305204105-å¤åç§ç.jpg",
+      "originalname": "1762305204105-å¤åç§ç.jpg",
+      "mimetype": "image/jpeg",
+      "size": 527909,
+      "uploadedAt": "2025-11-13T14:52:44.924Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20251113-L391-015/files/1763045564916_1762305204105-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
+    }
+  ]
+}

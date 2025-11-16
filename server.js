@@ -1,29 +1,42 @@
 // server.js（請以此檔案覆蓋或替換你現有內容）
 // ====== 套件載入 ======
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const fsExtra = require('fs-extra');
-const archiver = require('archiver');
-const { v4: uuidv4 } = require('uuid');
-const ExcelJS = require('exceljs');
-const cors = require('cors');
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import fsExtra from 'fs-extra';
+import archiver from 'archiver';
+import { v4 as uuidv4 } from 'uuid';
+import ExcelJS from 'exceljs';
+import cors from 'cors';
+import { fileURLToPath } from 'url';       // 把 import.meta.url 轉成檔案路徑
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url); // 模擬出目前檔案的完整路徑
+const __dirname = dirname(__filename);             // 再從路徑取得目前資料夾
+
 
 
 // ====== 基本設定 ======
 const app = express();
 const PORT = process.env.PORT || 3000;
-const UPLOADS_ROOT = path.resolve(process.env.UPLOADS_ROOT || path.join(__dirname, 'uploads'));
+const UPLOADS_ROOT = path.join(__dirname, 'uploads');  // 勤前教育資料夾
+const TMP_FOLDER = path.join(UPLOADS_ROOT, 'tmp');    // 共用暫存資料夾
+const ABNORMAL_UPLOADS_ROOT = path.join(__dirname, 'uploads-abnormal');  // 大樓異常報告資料夾
 console.log('UPLOADS_ROOT =', UPLOADS_ROOT);
 try {
   fs.mkdirSync(UPLOADS_ROOT, { recursive: true });
-  fs.mkdirSync(path.join(UPLOADS_ROOT, 'tmp'), { recursive: true });
   console.log('UPLOADS_ROOT =', UPLOADS_ROOT);
 } catch (err) {
   console.error('無法建立 UPLOADS_ROOT:', UPLOADS_ROOT, err);
   process.exit(1);
 }
+
+// ✅ 印出路徑確認
+console.log('🗂️ 勤前教育資料夾 =', UPLOADS_ROOT);
+console.log('🗂️ 暫存資料夾 =', TMP_FOLDER);
+console.log('🗂️ 異常事件資料夾 =', ABNORMAL_UPLOADS_ROOT);
+
 
 
 // ====== Middleware ======
@@ -32,18 +45,26 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(__dirname));
 app.use('/uploads', express.static(UPLOADS_ROOT));
+app.use('/uploads-abnormal', express.static(ABNORMAL_UPLOADS_ROOT));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
+app.use(express.static(path.join(__dirname)));
 
+// ✅ 確保根目錄與 tmp 子目錄存在  ✅ 建立資料夾
+await fsExtra.ensureDir(UPLOADS_ROOT);
+await fsExtra.ensureDir(TMP_FOLDER);
+await fsExtra.ensureDir(ABNORMAL_UPLOADS_ROOT);
+await fsExtra.ensureDir(path.join(UPLOADS_ROOT, 'tmp'));
 
 // ====== multer 設定（暫存） ======
-const upload = multer({ dest: path.join(UPLOADS_ROOT, 'tmp') });
+const upload = multer({ dest: TMP_FOLDER });
+
 
 
 // 首頁
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
 
 // 圖片牆預覽頁面
 app.get('/gallery', (req, res) => {
@@ -240,7 +261,6 @@ app.get('/gallery', (req, res) => {
     });
   }
 
-
   html += `
       <script>
         // 回上一頁按鈕：優先 history.back()，若無則用帶參數的首頁連結
@@ -300,6 +320,12 @@ app.get('/gallery', (req, res) => {
         }
 
         function deleteImage(folder, filename) {
+          const pwd = prompt('請輸入刪除密碼');
+          if (pwd !== '2301') {                    <!-- ✅ 密碼變更 -->
+            alert('❌ 密碼錯誤，無法刪除');
+          return;
+          }
+
           if (!confirm(\`確定要刪除 \${filename} 嗎？\`)) return;
 
           fetch('/delete-image', {
@@ -338,7 +364,6 @@ app.get('/gallery', (req, res) => {
 
   res.send(html);
 });
-
 
 // 圖片上傳
 app.post('/upload-image', upload.single('image'), (req, res) => {
@@ -560,7 +585,6 @@ app.get('/stats', (req, res) => {
   res.send(html);
 });
 
-
 // 臨時搬移舊 uploads 到永久 UPLOADS_ROOT（執行一次後建議移除此 route）
 app.post('/admin/migrate-uploads', (req, res) => {
   try {
@@ -716,56 +740,42 @@ app.get('/stats/download', async (req, res) => {
 
 
 
-// ====== 事件 API（主任手機上報） ======
 
 
-// Helper: 讀寫 meta.json
-const readEventMeta = async (id) => {
-  const metaPath = path.join(UPLOADS_ROOT, id, 'meta.json');
-  if (!(await fsExtra.pathExists(metaPath))) return null;
-  return await fsExtra.readJson(metaPath);
+
+
+
+
+// ✅ 大樓代碼表
+const buildingCodeMap = {
+  '松山金融': 'L391',
+  '前瞻金融': 'L336',
+  '全球民權': 'N364',
+  '產物大樓': 'L217',
+  '芷英大樓': 'N307',
+  '華航大樓': 'N236',
+  '南京科技': 'L169',
+  '互助營造': 'N113',
+  '摩天大樓': 'L126',
+  '新莊農會': 'N274',
+  '儒鴻企業': 'N393',
+  '新板傑仕堡': 'L384',
+  '新板金融': 'L371',
+  '桃園金融': 'L137',
+  '新竹大樓': 'L215',
+  '竹科大樓': 'L390',
+  '亞太經貿': 'L289',
+  '新光醫院': 'R125',
+  '台中惠國': 'L243',
+  '台南大樓': 'L186',
+  '頭份大樓': 'L367'
 };
 
-const writeEventMeta = async (id, meta) => {
-  const dir = path.join(UPLOADS_ROOT, id);
-  await fsExtra.ensureDir(dir);
-  await fsExtra.writeJson(path.join(dir, 'meta.json'), meta, { spaces: 2 });
-};
-
-// 建立事件
-app.post('/api/events', async (req, res) => {
-  try {
-    const { building, location, description, severity, reportedBy } = req.body || {};
-    if (!building || !location) return res.status(400).json({ error: 'missing building or location' });
-
-    const id = uuidv4();
-    const now = new Date().toISOString();
-    const event = {
-      id,
-      building,
-      location,
-      description: description || '',
-      severity: severity || 'normal',
-      reportedBy: reportedBy || '主任',
-      status: 'reported',
-      createdAt: now,
-      updatedAt: now,
-      files: []
-    };
-
-    await writeEventMeta(id, event);
-    res.json({ ok: true, id });
-  } catch (err) {
-    console.error('create event error:', err);
-    res.status(500).json({ error: 'server error' });
-  }
-});
-
-// multer storage（同步建立資料夾）
-const eventStorage = multer.diskStorage({
+// ✅ 檔案儲存設定（放最前面）
+const abnormalStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const eventId = req.params.id;
-    const dest = path.join(UPLOADS_ROOT, eventId);
+    const displayId = req.params.displayId;
+    const dest = path.join(ABNORMAL_UPLOADS_ROOT, displayId);
     fsExtra.ensureDirSync(dest);
     cb(null, dest);
   },
@@ -774,99 +784,370 @@ const eventStorage = multer.diskStorage({
     cb(null, name);
   }
 });
-const eventUpload = multer({ storage: eventStorage });
+const abnormalUpload = multer({ storage: abnormalStorage });
 
-// 上傳檔案
-app.post('/api/events/:id/files', eventUpload.array('files', 20), async (req, res) => {
+// ✅ 工具函式
+const readAbnormalMeta = async (id) => {
+  const metaPath = path.join(ABNORMAL_UPLOADS_ROOT, id, 'meta.json');
+  if (!(await fsExtra.pathExists(metaPath))) return null;
+  return await fsExtra.readJson(metaPath);
+};
+
+const writeAbnormalMeta = async (id, meta) => {
+  const dir = path.join(ABNORMAL_UPLOADS_ROOT, id);
+  await fsExtra.ensureDir(dir);
+  await fsExtra.writeJson(path.join(dir, 'meta.json'), meta, { spaces: 2 });
+};
+
+const getNextSerial = async (date, buildingCode) => {
+  const ids = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+  let maxSerial = 0;
+  for (const id of ids) {
+    const meta = await readAbnormalMeta(id);
+    if (!meta?.displayId) continue;
+    const prefix = `${date}-${buildingCode}-`;
+    if (meta.displayId.startsWith(prefix)) {
+      const tail = meta.displayId.slice(prefix.length);
+      const num = parseInt(tail, 10);
+      if (!isNaN(num) && num > maxSerial) maxSerial = num;
+    }
+  }
+  return String(maxSerial + 1).padStart(3, '0');
+};
+
+// ✅ 建立事件
+app.get('/api/abnormal-events', async (req, res) => {
   try {
-    const eventId = req.params.id;
-    const meta = await readEventMeta(eventId);
-    if (!meta) return res.status(404).json({ error: 'event not found' });
+    const { building, type, subtype, displayId } = req.query;
+    const ids = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    const out = [];
+    const seenDisplayIds = new Set();
+
+    for (const id of ids) {
+      const meta = await readAbnormalMeta(id);
+      if (!meta || !meta.displayId) continue;
+
+      if (building && meta.building !== building) continue;
+      if (type && meta.type !== type) continue;
+      if (subtype && meta.subtype !== subtype) continue;
+      if (displayId && !meta.displayId.includes(displayId)) continue;
+
+      if (seenDisplayIds.has(meta.displayId)) continue;
+      seenDisplayIds.add(meta.displayId);
+
+      out.push({
+        id: meta.id,
+        displayId: meta.displayId,
+        building: meta.building,
+        type: meta.type,
+        subtype: meta.subtype || '',
+        description: meta.description,
+        reportedBy: meta.reportedBy || '',
+        status: meta.status,
+        createdAt: meta.createdAt
+      });
+    }
+
+    out.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json(out.slice(0, 200));
+  } catch (err) {
+    console.error('查詢事件錯誤:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+
+// ✅ 上傳照片
+app.post('/api/abnormal-events/:displayId/files', abnormalUpload.array('files', 20), async (req, res) => {
+  try {
+    const displayId = req.params.displayId;
+    const folderPath = path.join(ABNORMAL_UPLOADS_ROOT, displayId);
+    const metaPath = path.join(folderPath, 'meta.json');
+    console.log('🧩 displayId:', displayId);
+    console.log('📁 folderPath:', folderPath);
+    console.log('📄 metaPath:', metaPath);
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    console.log('📁 資料夾列表:', folders);
+
+
+
+    if (!fs.existsSync(folderPath)) {
+      return res.status(404).json({ error: 'event not found' });
+    }
+
+    const meta = await fsExtra.readJson(metaPath).catch(() => null);
+    if (!meta) return res.status(404).json({ error: 'event meta not found' });
 
     const now = new Date().toISOString();
-    const files = Array.isArray(req.files) ? req.files : [];
+    const category = req.body.category || 'general';
+    meta.files = meta.files || [];
 
-    for (const f of files) {
+    for (const f of req.files || []) {
       meta.files.push({
         filename: f.filename,
         originalname: f.originalname,
         mimetype: f.mimetype,
         size: f.size,
         uploadedAt: now,
-        url: `/api/events/${eventId}/files/${encodeURIComponent(f.filename)}`
+        category: category,
+        url: `/api/abnormal-events/${displayId}/files/${encodeURIComponent(f.filename)}`
       });
     }
 
     meta.updatedAt = now;
-    await writeEventMeta(eventId, meta);
+    await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
     res.json({ ok: true, files: meta.files });
   } catch (err) {
-    console.error('upload files error:', err);
+    console.error('上傳異常檔案錯誤:', err);
     res.status(500).json({ error: 'upload error' });
   }
 });
 
-// 查詢單一事件
-app.get('/api/events/:id', async (req, res) => {
+// 查詢單一事件詳情
+app.get('/api/abnormal-events/:id', async (req, res) => {
   try {
-    const meta = await readEventMeta(req.params.id);
-    if (!meta) return res.status(404).json({ error: 'not found' });
-    res.json(meta);
-  } catch (err) {
-    console.error('get event error:', err);
-    res.status(500).json({ error: 'server error' });
-  }
-});
+    const targetId = req.params.id;
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
 
-// 查詢事件列表（可篩選 building）
-app.get('/api/events', async (req, res) => {
-  try {
-    const buildingFilter = req.query.building;
-    const ids = await fsExtra.readdir(UPLOADS_ROOT);
-    const out = [];
-
-    for (const id of ids) {
-      try {
-        const meta = await readEventMeta(id);
-        if (!meta) continue;
-        if (buildingFilter && meta.building !== buildingFilter) continue;
-        out.push({
-          id: meta.id,
-          building: meta.building,
-          location: meta.location,
-          status: meta.status,
-          createdAt: meta.createdAt,
-          updatedAt: meta.updatedAt
-        });
-      } catch (e) {
-        continue;
+    for (const folder of folders) {
+      const meta = await readAbnormalMeta(folder);
+      if (meta?.id === targetId) {
+        return res.json(meta);
       }
     }
 
-    out.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    res.json(out.slice(0, 200));
+    res.status(404).json({ error: '事件不存在' });
   } catch (err) {
-    console.error('list events error:', err);
+    console.error('讀取事件詳情錯誤:', err);
     res.status(500).json({ error: 'server error' });
   }
 });
 
-// 安全下載檔案
-app.get('/api/events/:id/files/:filename', async (req, res) => {
+//建立事件 API
+app.post('/api/abnormal-events', async (req, res) => {
   try {
-    const { id, filename } = req.params;
-    if (filename.includes('..') || filename.includes('/')) return res.status(400).send('invalid filename');
+    const {
+      building, type, subtype, description, reportedBy,
+      location, occurTime, phenomenon, judgement,
+      handling, suggestion, reason
+    } = req.body;
 
-    const filePath = path.join(UPLOADS_ROOT, id, filename);
-    if (!(await fsExtra.pathExists(filePath))) return res.status(404).send('file not found');
+    // 🚫 檢查必要欄位
+    if (!building || !type || !description) {
+      return res.status(400).json({ error: '缺少必要欄位' });
+    }
 
-    res.sendFile(filePath);
+    // 🧠 建立 displayId（日期 + 大樓代碼 + 序號）
+    const buildingCode = buildingCodeMap[building] || 'XX';
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const serial = await getNextSerial(date, buildingCode);
+    const displayId = `${date}-${buildingCode}-${serial}`;
+
+    const id = uuidv4(); // ✅ 唯一識別碼
+
+    // 📁 建立資料夾
+    const folderPath = path.join(ABNORMAL_UPLOADS_ROOT, displayId);
+    await fsExtra.ensureDir(folderPath);
+
+    // 📝 建立 meta.json 資料
+    const meta = {
+      id,
+      displayId,
+      building,
+      type,
+      subtype,
+      description,
+      reportedBy,
+      location,
+      occurTime,
+      phenomenon,
+      judgement,
+      handling,
+      suggestion,
+      reason,
+      status: 'reported',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      files: []
+    };
+
+    await writeAbnormalMeta(displayId, meta); // ✅ 儲存 meta.json
+    res.json({ id, displayId }); // ✅ 回傳事件識別碼
   } catch (err) {
-    console.error('download file error:', err);
-    res.status(500).send('server error');
+    console.error('建立事件錯誤:', err);
+    res.status(500).json({ error: 'server error' });
   }
 });
 
+//abnormal-detail顯示圖片
+app.get('/api/abnormal-events/:displayId/files/:filename', async (req, res) => {
+  const { displayId, filename } = req.params;
+  const filePath = path.join(ABNORMAL_UPLOADS_ROOT, displayId, filename);
+  if (!(await fsExtra.pathExists(filePath))) {
+    return res.status(404).send('File not found');
+  }
+  res.sendFile(filePath);
+});
+
+//刪除異常事件
+app.delete('/api/abnormal-events/:id', async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+
+    for (const folder of folders) {
+      const meta = await readAbnormalMeta(folder);
+      if (meta?.id === targetId) {
+        await fsExtra.remove(path.join(ABNORMAL_UPLOADS_ROOT, folder));
+        return res.json({ ok: true });
+      }
+    }
+
+    res.status(404).json({ error: '事件不存在' });
+  } catch (err) {
+    console.error('刪除事件錯誤:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+//變更事件狀態
+app.patch('/api/abnormal-events/:id/status', async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const newStatus = req.body.status;
+
+    if (!newStatus) {
+      return res.status(400).json({ error: '缺少狀態欄位' });
+    }
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    for (const folder of folders) {
+      const meta = await readAbnormalMeta(folder);
+      if (meta?.id === targetId) {
+        meta.status = newStatus;
+        meta.updatedAt = new Date().toISOString();
+        await writeAbnormalMeta(folder, meta);
+        return res.json({ ok: true });
+      }
+    }
+
+    res.status(404).json({ error: '事件不存在' });
+  } catch (err) {
+    console.error('更新事件狀態錯誤:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+//✅ PATCH 修改事件內容
+app.patch('/api/abnormal-events/:id', async (req, res) => {
+  const id = req.params.id;
+  const { reason, description, status } = req.body;
+
+  try {
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    for (const folder of folders) {
+      const metaPath = `${ABNORMAL_UPLOADS_ROOT}/${folder}/meta.json`;
+      const meta = await fsExtra.readJson(metaPath);
+      if (meta?.id === id) {
+        if (reason) meta.reason = reason;
+        if (description) meta.description = description;
+        if (status) meta.status = status;
+        await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
+        return res.json({ ok: true });
+      }
+    }
+    res.status(404).json({ error: '事件不存在' });
+  } catch (err) {
+    console.error('❌ 修改事件失敗:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+//✅ POST 上傳圖片（分類欄位改用多欄位 Multer）
+app.post('/api/abnormal-events/:id/files', upload.fields([
+  { name: 'initial', maxCount: 1 },
+  { name: 'processing', maxCount: 1 },
+  { name: 'resolved', maxCount: 1 },
+  { name: 'other', maxCount: 1 }
+]), async (req, res) => {
+  const id = req.params.id;
+  const category = req.body.category || 'general';
+  const file = req.files?.[category]?.[0]; // ✅ 根據分類取出對應檔案
+  if (!file) {
+    console.error('❌ Multer 未收到檔案，可能欄位名稱錯誤或未選擇檔案');
+    console.log('📦 req.files keys:', Object.keys(req.files || {}));
+    console.log('📦 req.body.category:', category);
+    return res.status(400).json({ error: '未收到檔案' });
+  }
+
+
+  if (!file) return res.status(400).json({ error: '未收到檔案' });
+
+  try {
+    console.log('📥 上傳中:', {
+      id,
+      category,
+      field: category,
+      file: file.originalname,
+      path: file.path
+    });
+
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    for (const folder of folders) {
+      const metaPath = path.join(ABNORMAL_UPLOADS_ROOT, folder, 'meta.json');
+      const meta = await fsExtra.readJson(metaPath);
+      console.log('📁 資料夾:', folder);
+      console.log('🆔 meta.id:', meta?.id);
+      console.log('🔍 前端送入 id:', id);
+      if (meta?.id === id) {
+        const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
+        const targetPath = path.join(ABNORMAL_UPLOADS_ROOT, folder, safeName);
+        await fsExtra.move(file.path, targetPath);
+
+        meta.files = meta.files || [];
+        meta.files.push({
+          filename: safeName,
+          url: `/uploads-abnormal/${folder}/${safeName}`,
+          mimetype: file.mimetype,
+          category
+        });
+
+        await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
+        return res.json({ ok: true });
+      }
+    }
+
+    res.status(404).json({ error: '事件不存在' });
+  } catch (err) {
+    console.error('❌ 上傳失敗:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+
+//✅ DELETE 刪除圖片
+app.delete('/api/abnormal-events/:id/files/:filename', async (req, res) => {
+  const { id, filename } = req.params;
+
+  try {
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    for (const folder of folders) {
+      const metaPath = `${ABNORMAL_UPLOADS_ROOT}/${folder}/meta.json`;
+      const meta = await fsExtra.readJson(metaPath);
+      if (meta?.id === id) {
+        const filePath = path.join(ABNORMAL_UPLOADS_ROOT, folder, filename);
+        await fsExtra.remove(filePath);
+
+        meta.files = (meta.files || []).filter(f => f.filename !== filename);
+        await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
+        return res.json({ ok: true });
+      }
+    }
+    res.status(404).json({ error: '事件不存在' });
+  } catch (err) {
+    console.error('❌ 刪除失敗:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
 
 // ====== 伺服器啟動 ======
 app.listen(PORT, () => {

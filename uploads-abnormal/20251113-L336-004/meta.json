@@ -1,0 +1,20 @@
+{
+  "id": "772a9d76-9b61-4648-806e-81c04ffde932",
+  "displayId": "20251113-L336-004",
+  "building": "前瞻金融",
+  "type": "大樓災害事件",
+  "subtype": "地震",
+  "description": "異常說明：\n初步判斷：\n處理方式：\n建議事項：",
+  "reportedBy": "林泊儒",
+  "location": "淡江學舍C棟2F洗衣房",
+  "occurTime": "2025-11-13T22:42",
+  "phenomenon": "",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "C棟主幹管堵塞異常報告",
+  "status": "reported",
+  "createdAt": "2025-11-13T14:42:27.788Z",
+  "updatedAt": "2025-11-13T14:42:27.788Z",
+  "files": []
+}

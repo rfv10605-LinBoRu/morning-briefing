@@ -248,6 +248,20 @@
   <label for="month">選擇月份：</label>
   <input type="month" id="month" onchange="filterByMonth()">
 
+  <p style="text-align:left; margin-top:24px;">
+    <a href="/abnormal.html" style="
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #ff0000;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+  ">
+      建立大樓異常報告
+    </a>
+  </p>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];

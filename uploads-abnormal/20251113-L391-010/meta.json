@@ -1,0 +1,20 @@
+{
+  "id": "04cbf8a3-d5a4-454f-8d42-b6a4772e1e2d",
+  "displayId": "20251113-L391-010",
+  "building": "松山金融",
+  "type": "大樓災害事件",
+  "subtype": "地震",
+  "description": "異常說明：\n初步判斷：\n處理方式：\n建議事項：",
+  "reportedBy": "林泊儒",
+  "location": "淡江學舍C棟2F洗衣房",
+  "occurTime": "2025-11-13T22:47",
+  "phenomenon": "",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "C棟主幹管堵塞異常報告",
+  "status": "reported",
+  "createdAt": "2025-11-13T14:47:10.652Z",
+  "updatedAt": "2025-11-13T14:47:10.652Z",
+  "files": []
+}

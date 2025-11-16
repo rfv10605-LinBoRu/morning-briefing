@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>修改異常事件</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    img {
+      max-width: 160px;
+      border-radius: 6px;
+      margin-right: 12px;
+      margin-bottom: 6px;
+    }
+
+    .image-block {
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>✏️ 修改異常事件</h2>
+
+  <div id="formBox">
+    <label>事件編號</label>
+    <input id="displayId" disabled />
+
+    <label>大樓</label>
+    <input id="building" disabled />
+
+    <label>主類型</label>
+    <input id="type" disabled />
+
+    <label>異常事由</label>
+    <input id="reason" />
+
+    <label>異常描述</label>
+    <textarea id="description" rows="6"></textarea>
+
+    <button onclick="saveEdit()">💾 儲存修改</button>
+
+    <h3>📸 附圖管理</h3>
+    <div id="imageList"></div>
+
+    <label>新增初步照片</label>
+    <input type="file" id="photoInitial" name="initial" multiple accept="image/*" />
+    <button onclick="uploadImages('initial')">📤 上傳初步</button>
+
+    <label>新增處理中照片</label>
+    <input type="file" id="photoProcessing" name="processing" multiple accept="image/*" />
+    <button onclick="uploadImages('processing')">📤 上傳處理中</button>
+
+
+    <label>新增完成照片</label>
+    <input type="file" id="photoResolved" name="resolved" multiple accept="image/*" />
+    <button onclick="uploadImages('resolved')">📤 上傳完成</button>
+
+    <label>新增其他照片</label>
+    <input type="file" id="photoInput" name="other" multiple accept="image/*" />
+    <button onclick="uploadImages('other')">📤 上傳其他</button>
+  </div>
+
+  <script>
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    async function loadEvent() {
+      const id = new URLSearchParams(location.search).get('id');
+      if (!id) return alert('❗ 缺少事件編號');
+
+      const resp = await fetch(`/api/abnormal-events/${id}`);
+      if (!resp.ok) return alert('❌ 無法載入事件');
+
+      const data = await resp.json();
+      document.getElementById('displayId').value = data.displayId || data.id;
+      document.getElementById('building').value = data.building;
+      document.getElementById('type').value = data.type;
+      document.getElementById('reason').value = data.reason || '';
+      document.getElementById('description').value = data.description || '';
+      renderImages(data.files || []);
+    }
+
+    async function saveEdit() {
+      const id = new URLSearchParams(location.search).get('id');
+      const reason = document.getElementById('reason').value;
+      const description = document.getElementById('description').value;
+
+      const pwd = prompt('請輸入修改密碼');
+      if (pwd !== '2301') return alert('❌ 密碼錯誤');
+
+      const resp = await fetch(`/api/abnormal-events/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, description })
+      });
+
+      if (!resp.ok) return alert('❌ 修改失敗');
+      alert('✅ 修改成功');
+      location.href = `/abnormal-detail.html?id=${id}`;
+    }
+
+    async function renderImages(files) {
+      const container = document.getElementById('imageList');
+      container.innerHTML = '';
+      for (const f of files) {
+        const filename = f.filename || (f.url?.split('/').pop());
+        if (!filename) continue;
+
+        const block = document.createElement('div');
+        block.className = 'image-block';
+
+        const label = document.createElement('div');
+        label.textContent = `📂 分類：${f.category || '未分類'}`;
+        label.style.fontSize = '13px';
+        label.style.color = '#555';
+
+        const img = document.createElement('img');
+        img.src = f.url;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑️ 刪除';
+        delBtn.onclick = () => deleteImage(filename);
+
+        block.appendChild(label);
+        block.appendChild(img);
+        block.appendChild(delBtn);
+        container.appendChild(block);
+      }
+    }
+
+    async function deleteImage(filename) {
+      const id = new URLSearchParams(location.search).get('id');
+      const resp = await fetch(`/api/abnormal-events/${id}/files/${filename}`, { method: 'DELETE' });
+      if (!resp.ok) return alert('❌ 刪除失敗');
+      alert('✅ 已刪除圖片');
+      loadEvent();
+    }
+
+    function getInputId(category) {
+      const map = {
+        initial: 'photoInitial',
+        processing: 'photoProcessing',
+        resolved: 'photoResolved',
+        other: 'photoInput'
+      };
+      return map[category];
+    }
+
+    async function uploadImages(category) {
+      const id = new URLSearchParams(location.search).get('id');
+      const inputId = getInputId(category);
+      const fileInput = document.getElementById(inputId);
+      const files = fileInput?.files;
+      if (!files || !files.length) return alert('❗ 請選擇圖片');
+
+      let successCount = 0;
+      let failList = [];
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append(category, file);
+        formData.append('category', category);
+
+        const resp = await fetch(`/api/abnormal-events/${id}/files`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (resp.ok) {
+          successCount++;
+        } else {
+          failList.push(file.name);
+          const errorText = await resp.text();
+          console.error(`❌ 上傳失敗：${file.name}`, errorText);
+        }
+      }
+
+      if (failList.length) alert(`❌ 上傳失敗：${failList.join(', ')}`);
+      if (successCount > 0) {
+        alert(`✅ 成功上傳 ${successCount} 張圖片`);
+        loadEvent();
+      }
+    }
+
+    loadEvent();
+  </script>
+
+</body>
+
+</html>

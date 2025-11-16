@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>異常報告詳情</title>
+
+  <script src="https://unpkg.com/docx@8.0.3/build/index.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+    }
+
+    .meta {
+      margin-bottom: 20px;
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .meta div {
+      margin-bottom: 6px;
+    }
+
+    .files video {
+      max-width: 200px;
+      margin: 8px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .files {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .files img {
+      width: 100%;
+      border-radius: 6px;
+    }
+
+    ul.event-description li {
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 12px;
+        font-size: 16px;
+      }
+
+      h2 {
+        font-size: 20px;
+        text-align: center;
+      }
+
+      .meta {
+        padding: 10px;
+        font-size: 15px;
+      }
+
+      .meta div {
+        margin-bottom: 10px;
+        word-break: break-word;
+      }
+
+      .files {
+        grid-template-columns: 1fr;
+        /* ✅ 單欄排版 */
+      }
+
+      .files img,
+      .files video {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      label {
+        display: block;
+        margin-top: 12px;
+        font-size: 15px;
+      }
+
+      select,
+      button {
+        width: 100%;
+        margin-top: 6px;
+        font-size: 16px;
+      }
+
+      a {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 16px;
+      }
+    }
+
+    .photo-group {
+      margin-bottom: 24px;
+      padding: 12px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+
+    .photo-group h4 {
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 4px;
+    }
+
+    .photo-group .files {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      /* ✅ 放大格子 */
+      gap: 12px;
+    }
+
+    .photo-group .files img {
+      max-width: 180px;
+      /* ✅ 放大圖片 */
+      width: 100%;
+      margin: auto;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .photo-group .files small {
+      display: block;
+      text-align: center;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      /* ✅ 手機自動換行 */
+    }
+
+    .status-row label {
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .status-row select {
+      padding: 6px 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .status-row button {
+      padding: 6px 12px;
+      font-size: 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .status-row button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <button id="exportBtn" onclick="exportToPPT()" disabled>📤 匯出為 PPT</button>
+  <button id="exportWordBtn" onclick="exportToWord()">📝 匯出為 Word</button>
+
+
+  <h2>📌 大樓異常報告詳情</h2>
+
+  <div style="display: flex; justify-content: flex-start; gap: 12px; margin-top: 24px;">
+    <a href="/abnormal.html" style="
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #0fa13b;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+  ">
+      返回建立異常報告
+    </a>
+
+    <a href="/abnormal-query.html" style="
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #0400ff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+  ">
+      返回異常報告查詢
+    </a>
+  </div>
+
+  <div id="meta" class="meta">載入中...</div>
+
+  <!-- ✅ 移出 meta 區塊，獨立存在 -->
+  <div id="descriptionBox" style="margin-top:16px;"></div>
+
+  <div class="status-row">
+    <label for="statusSelect">🔧 更新事件狀態</label>
+    <select id="statusSelect">
+      <option value="reported">待審核</option>
+      <option value="processing">處理中</option>
+      <option value="resolved">已處理</option>
+      <option value="closed">已結案</option>
+    </select>
+    <button onclick="updateStatus()">更新異常報告狀態</button>
+    <!-- ✅ 新增這個按鈕 -->
+    <button onclick="editContent()" style="background-color: #ffc107; color: black;">
+      ✏️ 修改異常報告內容
+    </button>
+
+  </div>
+
+
+  <div id="files"></div>
+
+
+
+  <script>
+
+    document.getElementById('exportBtn').disabled = false;
+
+    // 撰寫跳轉或開啟編輯模式
+    function editContent() {
+      const id = new URLSearchParams(location.search).get('id');
+      if (!id) {
+        alert('❗ 無法取得事件編號');
+        return;
+      }
+
+      // ✅ 跳轉到編輯頁面（你可以改成你自己的路徑）
+      location.href = `/abnormal-edit.html?id=${id}`;
+    }
+
+
+    // 撰寫 PPT 函式（初始版本）
+    function exportToPPT() {
+      if (typeof pptxgen !== 'function') {
+        alert('❌ pptxgen 尚未載入，請確認 CDN 路徑是否正確');
+        return;
+      }
+
+      const pptx = new pptxgen();
+      const slide = pptx.addSlide();
+
+      const metaText = document.getElementById('meta')?.innerText || '';
+      const descriptionText = document.getElementById('descriptionBox')?.innerText || '';
+
+      slide.addText('異常報告詳情', { x: 0.5, y: 0.3, fontSize: 24, bold: true });
+      slide.addText(metaText, { x: 0.5, y: 1.0, fontSize: 14, w: 8.5, h: 2.5, wrap: true });
+      slide.addText(descriptionText, { x: 0.5, y: 3.6, fontSize: 14, w: 8.5, h: 2.5, wrap: true });
+
+      // ✅ 匯出附圖
+      const allImages = window.allFiles?.filter(f => f.mimetype?.startsWith('image')) || [];
+      for (const f of allImages) {
+        const imgSlide = pptx.addSlide();
+        imgSlide.addImage({
+          path: f.url,
+          x: 0.5,
+          y: 1.0,
+          w: 8.5,
+          h: 5.5
+        });
+        imgSlide.addText('📷 ' + (f.category || '未分類'), { x: 0.5, y: 0.3, fontSize: 18, bold: true });
+      }
+
+      pptx.writeFile('異常報告.pptx');
+    }
+
+
+    // ✅ 轉 Word 文件
+    async function exportToWord() {
+      const { Document, Packer, Paragraph, HeadingLevel, ImageRun } = window.docx;
+
+      if (!window.meta) {
+        alert('❌ 尚未載入事件資料');
+        return;
+      }
+
+      const meta = window.meta;
+      const allFiles = window.allFiles || [];
+
+      const doc = new Document();
+
+      doc.addSection({
+        children: [
+          new Paragraph({ text: '異常報告詳情', heading: HeadingLevel.TITLE }),
+          new Paragraph(`事件編號：${meta.displayId || meta.id}`),
+          new Paragraph(`大樓：${meta.building}`),
+          new Paragraph(`主類型：${meta.type}`),
+          new Paragraph(`樣型：${meta.subtype || '未填寫'}`),
+          new Paragraph(`異常事由：${meta.reason || '未填寫'}`),
+          new Paragraph(`發生時間：${new Date(meta.occurTime).toLocaleString()}`),
+          new Paragraph(`回報人：${meta.reportedBy}`),
+          new Paragraph(`狀態：${meta.status}`),
+          new Paragraph(`建立時間：${new Date(meta.createdAt).toLocaleString()}`),
+          new Paragraph({ text: '異常描述', heading: HeadingLevel.HEADING_2 }),
+          ...parseDescriptionTextOnly(meta.description).map(line => new Paragraph(line)),
+          new Paragraph({ text: '附圖', heading: HeadingLevel.HEADING_2 })
+        ]
+      });
+
+      const firstImage = allFiles.find(f => f.mimetype?.startsWith('image'));
+      if (firstImage) {
+        const fullUrl = location.origin + firstImage.url;
+        const imgBlob = await fetch(fullUrl).then(r => r.blob());
+
+        const imgBuffer = await imgBlob.arrayBuffer();
+
+        doc.addSection({
+          children: [
+            new Paragraph('📷 ' + (firstImage.category || '未分類')),
+            new Paragraph(
+              new ImageRun({
+                data: imgBuffer,
+                transformation: { width: 480, height: 320 }
+              })
+            )
+          ]
+        });
+      }
+
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '異常報告.docx';
+      a.click();
+    }
+
+
+
+    const statusMap = {
+      reported: { label: '待審核', color: '#6c757d' },     // 灰色
+      processing: { label: '處理中', color: '#007bff' },   // 藍色
+      resolved: { label: '已處理', color: '#28a745' },     // 綠色
+      closed: { label: '已結案', color: '#ff0000' }        // 紅色
+    };
+
+    async function loadDetail() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      if (!id) {
+        document.getElementById('meta').innerText = '❗ 缺少事件編號';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`/api/abnormal-events/${id}`);
+        if (!resp.ok) throw new Error(await resp.text());
+
+        const data = await resp.json();
+        console.log('📂 所有檔案:', data.files);
+        window.meta = data;
+        window.allFiles = [
+          ...data.files.filter(f => f.category === 'initial'),
+          ...data.files.filter(f => f.category === 'processing'),
+          ...data.files.filter(f => f.category === 'resolved'),
+          ...data.files.filter(f => f.category === 'general' || !f.category)
+        ];
+
+        const initialFiles = data.files.filter(f => f.category === 'initial');
+        const processingFiles = data.files.filter(f => f.category === 'processing');
+        const resolvedFiles = data.files.filter(f => f.category === 'resolved');
+        const generalFiles = data.files.filter(f => f.category === 'general' || !f.category);
+
+        document.getElementById('statusSelect').value = data.status;
+
+        // ✅ 插入這裡
+        const metaDiv = document.getElementById('meta');
+        metaDiv.innerHTML = `
+      <div><strong>事件編號：</strong><code>${data.displayId || data.id}</code></div>
+      <div><strong>大樓：</strong>${data.building}</div>
+      <div><strong>主類型：</strong>${data.type}</div>
+      <div><strong>異常樣型：</strong>${data.subtype || '（未填寫）'}</div>
+      <div><strong>異常事由：</strong>${data.reason || '（未填寫）'}</div>    <!-- ✅ 插入這個容器 -->
+      <div><strong>發生時間：</strong>${new Date(data.occurTime).toLocaleString('zh-TW', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}</div>
+      <div id="descriptionBox"></div>   <!-- ✅ 插入這個容器 -->
+      <div><strong>回報人：</strong>${data.reportedBy}</div>
+      <div>
+        <strong>狀態：</strong>
+        <span style="color:${statusMap[data.status]?.color || '#000'}; font-weight:bold;">
+          ${statusMap[data.status]?.label || data.status}
+       </span>
+      </div>
+      <div><strong>建立時間：</strong>${new Date(data.createdAt).toLocaleString()}</div>
+    `;
+
+        renderDescription(data.description); // ✅ 描述：函式
+
+        const filesDiv = document.getElementById('files');
+        renderFileGroup('📸 初步發生照片', initialFiles);
+        renderFileGroup('🛠️ 處理中照片', processingFiles);
+        renderFileGroup('✅ 處理完成照片', resolvedFiles);
+        renderFileGroup('📂 其他照片', generalFiles);
+
+      } catch (err) {
+        document.getElementById('meta').innerText = '❌ 無法載入事件：' + err.message;
+      }
+    }
+
+    loadDetail();
+
+    async function updateStatus() {
+      const pwd = prompt('請輸入狀態更新密碼');
+      if (pwd !== '2301') {
+        alert('❌ 密碼錯誤，無法更新狀態');
+        return;
+      }
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      const status = document.getElementById('statusSelect').value;
+
+      try {
+        const resp = await fetch(`/api/abnormal-events/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        alert('✅ 狀態已更新');
+        location.reload();
+      } catch (err) {
+        alert('❌ 更新失敗：' + err.message);
+      }
+    }
+
+    // ✅ 版面調整
+    function renderDescription(raw) {
+      const box = document.getElementById('descriptionBox');
+      const html = `
+    <div style="margin-top:12px;">
+      
+      <ul class="event-description" style="list-style:none; padding-left:0; margin-top:8px;">
+        ${parseDescription(raw)}
+      </ul>
+    </div>
+  `;
+      box.innerHTML = html;
+    }
+
+    // ✅ 排版2
+    function parseDescription(text) {
+      const blocks = {};
+      const lines = text.split('\n');
+      let currentLabel = null;
+
+      for (const line of lines) {
+        const labelMatch = line.match(/^(.+?)：(.*)$/);
+        if (labelMatch) {
+          currentLabel = labelMatch[1].trim();
+          const content = labelMatch[2].trim();
+          blocks[currentLabel] = content;
+        } else if (currentLabel) {
+          blocks[currentLabel] += '\n' + line.trim();
+        }
+      }
+
+      return Object.entries(blocks).map(([label, content]) => {
+        if (label === '異常說明') {
+          // 每行強制換行顯示
+          const forcedLines = content.split('\n').map(line => line.trim()).filter(Boolean);
+          return `<li><strong>${label}：</strong><br>${forcedLines.map(l => `<div>${l}</div>`).join('')}</li>`;
+        } else {
+          // 一般欄位：保留換行但不強制分段
+          return `<li><strong>${label}：</strong>${content.replace(/\n/g, '<br>')}</li>`;
+        }
+      }).join('');
+    }
+
+
+    // ✅ 給 Word 匯出用的純文字解析器
+    function parseDescriptionTextOnly(text) {
+      const blocks = {};
+      const lines = text.split('\n');
+      let currentLabel = null;
+
+      for (const line of lines) {
+        const labelMatch = line.match(/^(.+?)：(.*)$/);
+        if (labelMatch) {
+          currentLabel = labelMatch[1].trim();
+          const content = labelMatch[2].trim();
+          blocks[currentLabel] = content;
+        } else if (currentLabel) {
+          blocks[currentLabel] += '\n' + line.trim();
+        }
+      }
+
+      // 回傳純文字陣列（不含 HTML）
+      return Object.entries(blocks).flatMap(([label, content]) => {
+        const lines = content.split('\n').map(line => line.trim()).filter(Boolean);
+        return [`${label}：`, ...lines];
+      });
+    }
+
+
+
+    // 網格排版函式
+    function renderFileGroup(title, files) {
+      if (!files || files.length === 0) return;
+
+      const filesDiv = document.getElementById('files');
+
+      const groupWrapper = document.createElement('div');
+      groupWrapper.className = 'photo-group';
+
+      const heading = document.createElement('h4');
+      heading.textContent = title;
+      groupWrapper.appendChild(heading);
+
+      const group = document.createElement('div');
+      group.className = 'files';
+
+      for (const f of files) {
+        const block = document.createElement('div');
+        block.style.display = 'flex';
+        block.style.flexDirection = 'column';
+        block.style.alignItems = 'center';
+
+        if (f.mimetype?.startsWith('image')) {
+          const img = document.createElement('img');
+          img.src = f.url;
+          img.alt = '';
+
+          // ✅ 插入這裡：微調圖片樣式
+          img.style.maxWidth = '160px';         // 稍微放大
+          img.style.margin = '8px';
+          img.style.borderRadius = '6px';
+          img.style.objectFit = 'cover';
+          img.style.boxShadow = '0 0 6px rgba(0,0,0,0.2)';
+
+          // ✅ 加上 hover 放大效果
+          img.style.transition = 'transform 0.2s ease';
+          img.onmouseover = () => img.style.transform = 'scale(1.05)';
+          img.onmouseout = () => img.style.transform = 'scale(1)';
+
+
+          block.appendChild(img);
+        }
+        group.appendChild(block);
+      }
+
+      groupWrapper.appendChild(group);
+      filesDiv.appendChild(groupWrapper);
+    }
+
+
+  </script>
+
+  <hr />
+  <p>
+    <a href="/abnormal-query.html" style="text-decoration:none;">
+      🔙 返回異常事件列表
+    </a>
+  </p>
+</body>
+
+</html>
