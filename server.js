@@ -1,373 +1,291 @@
-// server.js（請以此檔案覆蓋或替換你現有內容）
+// server.js
 // ====== 套件載入 ======
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import path from 'path'; // Node.js 內建路徑模組
+import fs from 'fs';  // Node.js 內建檔案系統模組
 import fsExtra from 'fs-extra';
 import archiver from 'archiver';
 import { v4 as uuidv4 } from 'uuid';
 import ExcelJS from 'exceljs';
 import cors from 'cors';
-import { fileURLToPath } from 'url';       // 把 import.meta.url 轉成檔案路徑
+import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { Readable } from 'stream';
+import session from 'express-session';
+import { Document, Packer, Paragraph } from 'docx';
+import PizZip from 'pizzip'; // 用於處理 docx zip 結構
+import Docxtemplater from 'docxtemplater'; // 用於處理 docx 範本
+import axios from 'axios';  // 引入 axios
+import bodyParser from 'body-parser'; // 用於解析請求主體
 
-const __filename = fileURLToPath(import.meta.url); // 模擬出目前檔案的完整路徑
-const __dirname = dirname(__filename);             // 再從路徑取得目前資料夾
 
 
+// ====== __dirname 模擬 ======
+const __filename = fileURLToPath(import.meta.url); // 模擬 CommonJS 的 __filename
+const __dirname = dirname(__filename);  // 模擬 CommonJS 的 __dirname
 
 // ====== 基本設定 ======
 const app = express();
 const PORT = process.env.PORT || 3000;
-const UPLOADS_ROOT = path.join(__dirname, 'uploads');  // 勤前教育資料夾
-const TMP_FOLDER = path.join(UPLOADS_ROOT, 'tmp');    // 共用暫存資料夾
-const ABNORMAL_UPLOADS_ROOT = path.join(__dirname, 'uploads-abnormal');  // 大樓異常報告資料夾
-console.log('UPLOADS_ROOT =', UPLOADS_ROOT);
+const UPLOADS_ROOT = path.join(__dirname, 'uploads');
+const TMP_FOLDER = path.join(UPLOADS_ROOT, 'tmp');
+const ABNORMAL_UPLOADS_ROOT = path.join(__dirname, 'uploads-abnormal');
+const usersPath = path.join(__dirname, 'users.json');
+const usersRaw = fs.readFileSync(usersPath, 'utf-8');
+const users = JSON.parse(usersRaw);
+
+
+
+
+// 確保資料夾存在（同步建立，避免頂層 await 引起不同行為）
 try {
   fs.mkdirSync(UPLOADS_ROOT, { recursive: true });
-  console.log('UPLOADS_ROOT =', UPLOADS_ROOT);
 } catch (err) {
   console.error('無法建立 UPLOADS_ROOT:', UPLOADS_ROOT, err);
   process.exit(1);
 }
+fsExtra.ensureDirSync(UPLOADS_ROOT);
+fsExtra.ensureDirSync(TMP_FOLDER);
+fsExtra.ensureDirSync(ABNORMAL_UPLOADS_ROOT);
+fsExtra.ensureDirSync(path.join(UPLOADS_ROOT, 'tmp'));
 
-// ✅ 印出路徑確認
+// 檢查 Readable.push 原始參數數量（快速偵錯用）
+console.log('Readable.push arity:', Readable.prototype.push.length);
+
+// ====== Multer 設定 ======
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, TMP_FOLDER);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+  }
+});
+const upload = multer({ storage });
+const uploadMiddleware = upload.array('files', 10); // ✅ 改成單一欄位 'files'
+const uploadSingleField = multer({ storage }).array('files', 10);
+
+// ====== 印出路徑確認 ======
 console.log('🗂️ 勤前教育資料夾 =', UPLOADS_ROOT);
 console.log('🗂️ 暫存資料夾 =', TMP_FOLDER);
 console.log('🗂️ 異常事件資料夾 =', ABNORMAL_UPLOADS_ROOT);
-
 
 
 // ====== Middleware ======
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(__dirname));
+//app.use(express.static(__dirname));
 app.use('/uploads', express.static(UPLOADS_ROOT));
 app.use('/uploads-abnormal', express.static(ABNORMAL_UPLOADS_ROOT));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static('public'));
 app.use(express.static(path.join(__dirname)));
 
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true
+}));
+
+
+
+// 簡易上傳 request header log（只針對上傳路徑）
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/abnormal-events') && req.method === 'POST') {
+    console.log('---- Incoming upload request ----');
+    console.log('URL:', req.originalUrl);
+    console.log('Headers:', {
+      'content-type': req.headers['content-type'],
+      'content-length': req.headers['content-length'],
+      host: req.headers.host,
+      origin: req.headers.origin
+    });
+  }
+  next();
+});
+
 // ✅ 確保根目錄與 tmp 子目錄存在  ✅ 建立資料夾
-await fsExtra.ensureDir(UPLOADS_ROOT);
-await fsExtra.ensureDir(TMP_FOLDER);
-await fsExtra.ensureDir(ABNORMAL_UPLOADS_ROOT);
-await fsExtra.ensureDir(path.join(UPLOADS_ROOT, 'tmp'));
-
-// ====== multer 設定（暫存） ======
-const upload = multer({ dest: TMP_FOLDER });
-
+fsExtra.ensureDirSync(UPLOADS_ROOT);
+fsExtra.ensureDirSync(TMP_FOLDER);
+fsExtra.ensureDirSync(ABNORMAL_UPLOADS_ROOT);
+fsExtra.ensureDirSync(path.join(UPLOADS_ROOT, 'tmp'));
 
 
 // 首頁
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+  const user = req.session.user;
+  if (!user) return res.redirect('/login');
 
-// 圖片牆預覽頁面
-app.get('/gallery', (req, res) => {
-  const building = req.query.building;
-  const date = req.query.date;
-
-  if (!date) return res.status(400).send('請提供日期');
-
-  const uploadsPath = UPLOADS_ROOT;
-  if (!fs.existsSync(uploadsPath)) return res.send('目前尚無上傳圖片');
-
-  const folderPrefix = building ? `${building}-${date}` : date;
-  const folders = fs.readdirSync(uploadsPath).filter(folder => folder.includes(folderPrefix));
+  const username = user?.name || '使用者';
 
   let html = `
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>勤前照片上傳預覽</title>
-      <style>
-        body {
-          font-family: sans-serif;
-          padding: 20px;
-          margin: 0;
-          background-color: #f9f9f9;
+  <!DOCTYPE html>
+  <html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>勤前系統首頁</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f6fa;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 24px;
+        font-size: 22px;
+      }
+      .logout-btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #e74c3c;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 200px 200px 200px; /* ✅ 每欄固定 160px */
+        gap: 16px; /* ✅ 格子間距 */
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .square-btn {
+        position: relative;
+        width: 100%;
+        padding-top: 100%; /* ✅ 高度 = 寬度 */
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 16px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+        overflow: hidden;
+      }
+      .square-btn:hover {
+        transform: translateY(-2px);
+      }
+      .square-btn a {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        font-size: 20px; /* ✅ 調整字體大小 */
+        line-height: 1.4;
+        padding: 20px; /* ✅ 調整內距 */
+      }
+      @media (max-width: 600px) {
+        h1 { font-size: 18px; }
+        .grid {
+          grid-template-columns: repeat(1, 1fr); /* ✅ 手機一欄 */
         }
-
-        h2, h3 {
-          color: #333;
-          margin-top: 20px;
-        }
-
-        .controls {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .back-btn {
-          display: inline-block;
-          padding: 8px 12px;
-           background: #007bff;
-          color: #fff;
-          border-radius: 6px;
-          text-decoration: none;
-          cursor: pointer;
-        }
-
-        input[type="date"] {
-         margin-bottom: 20px;
-          padding: 6px;
-          font-size: 16px;
-        }
-
-        .folder-block {
-          background-color: #fff;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          padding: 12px;
-          margin-bottom: 20px;
-        }
-
-        .folder-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .img-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 10px;
-        }
-
-        .img-block {
-          width: 150px;
-          text-align: center;
-        }
-
-        .preview-img {
-          width: 100%;
-          height: auto;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          cursor: pointer;
-          transition: transform 0.2s ease;
-        }
-
-        .preview-img.zoom {
-         transform: scale(3);
-         z-index: 999;
-         position: relative;
-         box-shadow: 0 0 12px rgba(0,0,0,0.3);
-         background: #fff;
-         position: fixed;
-         top: 50%;
-         left: 50%;
-         transform: translate(-50%, -50%) scale(3);
-         max-width: 90vw;
-         max-height: 90vh;
-        }
-
-        .action-btn {
-         margin-top: 6px;
-          padding: 6px 10px;
+        .square-btn a {
           font-size: 14px;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
+          padding: 10px;
         }
+      }
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <img src="/uploads/company-logo.png" alt="公司LOGO" style="height: 80px;">
+    </div>
+    <h1>📋 台北南區系統首頁</h1>
+    <div style="text-align:center;">
+      <div style="margin-bottom:12px;">👋 歡迎 ${username}</div>
+      <a href="/logout" class="logout-btn"> 登出</a>
+    </div>
 
-        .download-btn {
-          background-color: #2ecc71;
-          color: white;
-        }
-
-        .delete-btn {
-          background-color: #e74c3c;
-          color: white;
-        }
-
-        .download-folder-btn {
-          background-color: #3498db;
-          color: white;
-          padding: 8px 12px;
-          margin-top: 10px;
-        }
-
-        @media (max-width: 600px) {
-          .img-block {
-            width: 45%;
-          }
-
-          .action-btn {
-            font-size: 12px;
-            padding: 5px 8px;
-          }
-
-          .download-folder-btn {
-            width: 100%;
-          }
-        }
-      </style>
-
-    </head>
-    <body>
-      <div class="controls">
-      </div>
-        <div>
-          <a id="backLink" class="back-btn" href="/">回到主畫面</a>
-          <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">勤前上傳統計</a>
-        </div>
-
-      <h2>勤前照片上傳預覽</h2>
-      <label for="date">選擇日期：</label>
-      <input type="date" id="date" value="${date}" onchange="filterByDate()">
-  `;
-
-  if (folders.length === 0) {
-    html += `<p>尚未上傳 ${date} 的圖片</p>`;
-  } else {
-    folders.forEach(folder => {
-      const folderPath = path.join(uploadsPath, folder);
-      const files = fs.readdirSync(folderPath).filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
-
-      html += `
-      <div class="folder-block">
-        <div class="folder-header">
-          <h3>${folder}</h3>
-          <button class="download-folder-btn" onclick="downloadFolder('${folder}')">📦 下載整組 ${folder}</button>
-        </div>
-        <div class="img-grid">
-    `;
-
-      files.forEach(file => {
-        const imgUrl = encodeURI(`/uploads/${folder}/${file}`);
-        html += `
-        <div class="img-block">
-          <img src="${imgUrl}" class="preview-img">
-          <br>
-          <a href="${imgUrl}" download="${folder}-${file}">
-          </a>
-          <button class="action-btn delete-btn" onclick="deleteImage('${folder}', '${file}')">刪除</button>
-        </div>
-      `;
-      });
-
-      html += `</div></div>`;
-    });
-  }
-
-  html += `
-      <script>
-        // 回上一頁按鈕：優先 history.back()，若無則用帶參數的首頁連結
-        document.getElementById('backHistory').addEventListener('click', () => {
-          if (window.history.length > 1) {
-            window.history.back();
-          } else {
-            // fallback to homepage
-            window.location.href = buildReturnUrl();
-          }
-        });
-
-        // 將 date/building 帶回首頁（若有）
-        function buildReturnUrl() {
-          const params = new URLSearchParams(location.search);
-          const date = params.get('date');
-          const building = params.get('building');
-          const url = new URL('/', location.origin);
-          if (date) url.searchParams.set('date', date);
-          if (building) url.searchParams.set('building', building);
-          return url.toString();
-        }
-
-        // 同步設定回到首頁的連結（讓直接點擊也帶參數）
-        (function setBackLink() {
-          const backLink = document.getElementById('backLink');
-          backLink.href = buildReturnUrl();
-        })();
-
-        document.addEventListener("DOMContentLoaded", function () {
-          const backBtn = document.getElementById('backHistory');
-          if (backBtn) {
-            backBtn.addEventListener('click', () => {
-              if (window.history.length > 1) {
-                window.history.back();
-              } else {
-                window.location.href = buildReturnUrl();
-              }
-            });
-          }
-
-        const images = document.querySelectorAll(".preview-img");
-        images.forEach(img => {
-            img.addEventListener("click", () => {
-              img.classList.toggle("zoom");
-            });
-          });
-        });
-
-        function filterByDate() {
-          const date = document.getElementById('date').value;
-          const params = new URLSearchParams(location.search);
-          const building = params.get('building') || '';
-          let url = '/gallery?date=' + date;
-          if (building) url += '&building=' + encodeURIComponent(building);
-          window.location.href = url;
-        }
-
-        function deleteImage(folder, filename) {
-          const pwd = prompt('請輸入刪除密碼');
-          if (pwd !== '2301') {                    <!-- ✅ 密碼變更 -->
-            alert('❌ 密碼錯誤，無法刪除');
-          return;
-          }
-
-          if (!confirm(\`確定要刪除 \${filename} 嗎？\`)) return;
-
-          fetch('/delete-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ folder, filename })
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              alert('✅ 刪除成功');
-              location.reload();
-            } else {
-              alert('❌ 刪除失敗：' + data.message);
-            }
-          })
-          .catch(err => {
-            alert('❌ 發生錯誤');
-            console.error(err);
-          });
-        }
-
-        function downloadFolder(folder) {
-          const link = document.createElement('a');
-          link.href = '/download-folder?folder=' + encodeURIComponent(folder);
-          link.download = folder + '.zip';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-
-      </script>
-    </body>
-    </html>
+    <div class="grid">
+      <div class="square-btn"><a href="/views/upload.html">📤<br>勤前照片上傳</a></div>
+      <div class="square-btn"><a href="/gallery">🖼️<br>勤前照片預覽</a></div>
+      <div class="square-btn"><a href="/stats">📊<br>統計報表</a></div>
+      <div class="square-btn"><a href="/public/abnormal.html">📋<br>建立異常報告</a></div>
+      <div class="square-btn"><a href="/public/abnormal-query.html">📑<br>查詢異常報告</a></div>
+      <div class="square-btn"><a href="">📊<br>統計異常報告(建置中)</a></div>
+    </div>
+  </body>
+  </html>
   `;
 
   res.send(html);
 });
 
-// 圖片上傳
-app.post('/upload-image', upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).send('請選擇圖片');
+
+
+// 顯示登入頁面
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+
+
+// 處理登入表單
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const matched = users.find(u => u.username === username && u.password === password);
+
+  if (matched) {
+    req.session.user = { name: matched.name, username: matched.username };
+    return res.redirect('/');
+  }
+
+  res.send('❌ 登入失敗，請返回重試');
+});
+
+// 處理登出
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+
+
+// ==================== 勤前教育圖片上傳系統 API ====================
+// ✅ 圖片牆預覽頁面
+app.get('/gallery', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'gallery.html'));
+});
+
+// ✅ 提供圖片牆時間資料 JSON
+app.get('/gallery-data', (req, res) => {
+  const { building, date } = req.query;
+  if (!date) return res.status(400).json({ error: '請提供日期' });
+
+  const folderPrefix = building ? `${building}-${date}` : date;
+  if (!fs.existsSync(UPLOADS_ROOT)) return res.json({ folders: [] });
+
+  const folders = fs.readdirSync(UPLOADS_ROOT).filter(f => f.includes(folderPrefix));
+  const result = folders.map(folder => {
+    const files = fs.readdirSync(path.join(UPLOADS_ROOT, folder))
+      .filter(f => /\.(jpg|jpeg|png|gif)$/i.test(f))
+      .map(file => ({
+        filename: file,
+        url: `/uploads/${folder}/${file}`
+      }));
+    return { folder, files };
+  });
+
+  res.json({ folders: result });
+});
+// ==================== 勤前教育圖片上傳系統 API ====================
+
+// ✅ 圖片上傳
+app.post('/upload-image', upload.array('files', 10), (req, res) => {
+  const files = req.files;
+  if (!files || files.length === 0) return res.status(400).send('請選擇圖片');
 
   const building = req.body.building || '未指定大樓';
   const note = req.body.note || '未指定備註';
@@ -376,28 +294,32 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
   const folderName = `${building}-${date}`;
   const folderPath = path.join(UPLOADS_ROOT, folderName);
 
-  if (!folderPath.startsWith(UPLOADS_ROOT + path.sep) && folderPath !== UPLOADS_ROOT) {
+  if (!folderPath.startsWith(UPLOADS_ROOT + path.sep)) {
     return res.status(403).send('invalid folder');
   }
 
   if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
-  const timestamp = Date.now();
-  const ext = path.extname(req.file.originalname);
-  const savedFilename = `${timestamp}-${note}${ext}`;
-  const newPath = path.join(folderPath, savedFilename);
+  const savedFiles = [];
 
-  // 將 multer 暫存檔搬到目標資料夾
-  fs.rename(req.file.path, newPath, (err) => {
-    if (err) {
-      console.error('移動檔案失敗:', err);
-      return res.status(500).send('圖片儲存失敗');
-    }
-    res.send({ message: '上傳成功', filename: `${folderName}/${savedFilename}` });
+  files.forEach(file => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const savedFilename = `${timestamp}-${note}${ext}`;
+    const newPath = path.join(folderPath, savedFilename);
+
+    fs.renameSync(file.path, newPath); // ✅ 同步搬移，簡化流程
+    savedFiles.push(`${folderName}/${savedFilename}`);
+  });
+
+  res.send({
+    message: `✅ 上傳成功，共 ${savedFiles.length} 張`,
+    files: savedFiles
   });
 });
 
-// 刪除圖片
+
+// ✅ 圖片牆刪除圖片
 app.post('/delete-image', (req, res) => {
   try {
     const { folder, filename } = req.body;
@@ -406,7 +328,7 @@ app.post('/delete-image', (req, res) => {
     }
 
     const imagePath = path.resolve(UPLOADS_ROOT, folder, filename);
-    if (!imagePath.startsWith(UPLOADS_ROOT + path.sep) && imagePath !== UPLOADS_ROOT) {
+    if (!imagePath.startsWith(UPLOADS_ROOT + path.sep)) {
       return res.status(403).send({ success: false, message: '無效路徑' });
     }
 
@@ -416,7 +338,6 @@ app.post('/delete-image', (req, res) => {
 
     fs.unlinkSync(imagePath);
 
-    // 檢查資料夾是否為空並刪除空資料夾
     const folderPath = path.dirname(imagePath);
     const remaining = fs.readdirSync(folderPath).filter(n => n !== '.' && n !== '..');
     if (remaining.length === 0) {
@@ -431,8 +352,13 @@ app.post('/delete-image', (req, res) => {
   }
 });
 
-// 每日上傳統計（僅上班日，逐日進度表在上方、摘要在下方，含下載按鈕）
+// ✅ 改為送出 HTML 頁面
 app.get('/stats', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'stats.html'));
+});
+
+// ✅ 提供統計資料 JSON
+app.get('/stats-data', (req, res) => {
   const uploadsPath = UPLOADS_ROOT;
   const buildings = [
     '松山金融', '前瞻金融', '全球民權', '產物大樓',
@@ -442,34 +368,29 @@ app.get('/stats', (req, res) => {
   ];
 
   const now = new Date();
-  const selectedMonth = req.query.month || now.toISOString().slice(0, 7); // YYYY-MM
+  const selectedMonth = req.query.month || now.toISOString().slice(0, 7);
   const [year, month] = selectedMonth.split('-');
   const daysInMonth = new Date(year, month, 0).getDate();
 
   const dateList = [];
   const workdayList = [];
   for (let day = 1; day <= daysInMonth; day++) {
-    const dayStr = String(day).padStart(2, '0');
-    const monthStr = String(month).padStart(2, '0');
-    const dateStr = `${year}-${monthStr}-${dayStr}`;
-    dateList.push(dateStr);
-    const dateObj = new Date(`${year}-${monthStr}-${dayStr}`);
-    const dow = dateObj.getDay();
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dow = new Date(dateStr).getDay();
     if (dow >= 1 && dow <= 5) workdayList.push(dateStr);
   }
 
-  let holidayListRaw = [
-    '2025-10-06', '114/10/10'
-  ];
+  let holidayListRaw = ['2025-10-06', '114/10/10'];
   if (req.query.holidays) {
     holidayListRaw = holidayListRaw.concat(req.query.holidays.split(',').map(s => s.trim()).filter(Boolean));
   }
+
   function normalizeHoliday(h) {
     if (!h) return null;
     h = h.trim();
     if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(h)) {
-      const parts = h.split('-');
-      return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      const [y, m, d] = h.split('-');
+      return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
     }
     const m2 = h.match(/^(\d{2,3})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
     if (m2) {
@@ -478,112 +399,35 @@ app.get('/stats', (req, res) => {
     }
     return null;
   }
+
   const holidayList = Array.from(new Set(holidayListRaw.map(normalizeHoliday).filter(Boolean)));
   const filteredWorkdayList = workdayList.filter(d => !holidayList.includes(d));
 
+  const uploadMap = {};
   const buildingStats = {};
   buildings.forEach(building => {
     let count = 0;
     filteredWorkdayList.forEach(date => {
       const folderPath = path.join(uploadsPath, `${building}-${date}`);
-      if (fs.existsSync(folderPath)) count++;
+      const exists = fs.existsSync(folderPath);
+      uploadMap[`${building}-${date}`] = exists;
+      if (exists) count++;
     });
     buildingStats[building] = count;
   });
 
-  let html = `
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>${year}年${month}月 上傳統計（僅上班日）</title>
-    <style>
-      body { font-family: sans-serif; padding:20px; margin:0; background:#f7f8fa; color:#222; }
-      .header { display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
-      .back-btn { display:inline-block; padding:8px 12px; background:#007bff; color:#fff; border-radius:6px; text-decoration:none; cursor:pointer; }
-      .download-btn { display:inline-block; padding:8px 12px; background:#28a745; color:#fff; border-radius:6px; text-decoration:none; cursor:pointer; }
-      h2 { margin:8px 0 12px 0; }
-      .summary { background:#fff; border:1px solid #e6e6e6; padding:12px; border-radius:8px; margin-top:12px; }
-      .summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px; }
-      .card { background:#fff; border:1px solid #eaeaea; padding:10px; border-radius:8px; }
-      input[type="month"] { padding:6px; }
-
-      .table-wrap { background:#fff; border:1px solid #e6e6e6; border-radius:8px; padding:8px; max-height:66vh; overflow:auto; }
-      table { border-collapse:collapse; width:100%; min-width:700px; }
-      th, td { border:1px solid #ddd; padding:6px 10px; text-align:center; white-space:nowrap; background:#fff; }
-      th { background:#f3f6fb; position:sticky; top:0; z-index:5; font-weight:600; }
-      td:first-child, th:first-child { position:sticky; left:0; background:#f9fafb; z-index:6; text-align:left; padding-left:12px; }
-      td.ok { color:#0a8a3c; font-weight:700; cursor:pointer; }
-      td.miss { color:#e03e2d; font-weight:700; cursor:pointer; }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <a id="backLink" class="back-btn" href="/">回到主畫面</a>
-      <div>
-        <label for="month">選擇月份：</label>
-        <input type="month" id="month" value="${selectedMonth}" onchange="changeMonth()">
-      </div>
-      <a id="downloadExcelBtn" class="download-btn" href="/stats/download?month=${selectedMonth}">下載 Excel</a>
-    </div>
-
-    <h2>${year}年${month}月 台北南區勤前上傳統計（僅上班日）</h2>
-
-    <!-- 逐日進度表（上方） -->
-    <div class="table-wrap">
-      <table>
-        <tr><th>大樓別</th>`;
-
-  filteredWorkdayList.forEach(date => { html += `<th>${date}</th>`; });
-  html += `</tr>`;
-
-  buildings.forEach(building => {
-    html += `<tr><td>${building}</td>`;
-    filteredWorkdayList.forEach(date => {
-      const folderPath = path.join(uploadsPath, `${building}-${date}`);
-      const exists = fs.existsSync(folderPath);
-      html += `<td class="${exists ? 'ok' : 'miss'}" onclick="viewGallery('${building}','${date}')">${exists ? '✅' : '⛔'}</td>`;
-    });
-    html += `</tr>`;
+  res.json({
+    year,
+    month,
+    dates: filteredWorkdayList,
+    buildings,
+    holidays: holidayList,
+    buildingStats,
+    uploadMap
   });
-
-  html += `
-      </table>
-    </div>
-
-    <!-- 摘要（下方） -->
-    <div class="summary">
-      <div>本月共 <strong>${buildings.length}</strong> 棟大樓，實際上班日 <strong>${filteredWorkdayList.length}</strong> 天（排除週末${holidayList.length ? '與指定假日' : ''}）。</div>
-      <div style="margin-top:8px;" class="summary-grid">`;
-
-  buildings.forEach(b => {
-    const uploaded = buildingStats[b];
-    const denom = filteredWorkdayList.length || 1;
-    const rate = ((uploaded / denom) * 100).toFixed(1);
-    const warn = denom > 0 && rate < 80 ? ' ⚠️' : '';
-    html += `<div class="card"><strong>${b}</strong><div style="margin-top:6px;">${uploaded}/${filteredWorkdayList.length} 天</div><div style="color:#666;margin-top:6px;">上傳率：${rate}%${warn}</div></div>`;
-  });
-
-  html += `
-      </div>
-      <div style="margin-top:10px;color:#666;">已排除假日： ${holidayList.length ? holidayList.join(', ') : '無'}</div>
-    </div>
-
-    <script>
-      function changeMonth() {
-        const m = document.getElementById('month').value;
-        document.getElementById('downloadExcelBtn').href = '/stats/download?month=' + m;
-        window.location.href = '/stats?month=' + m;
-      }
-      function viewGallery(building, date) {
-        window.open('/gallery?building=' + encodeURIComponent(building) + '&date=' + date, '_blank');
-      }
-    </script>
-  </body>
-  </html>
-  `;
-
-  res.send(html);
 });
+
+
 
 // 臨時搬移舊 uploads 到永久 UPLOADS_ROOT（執行一次後建議移除此 route）
 app.post('/admin/migrate-uploads', (req, res) => {
@@ -609,25 +453,8 @@ app.post('/admin/migrate-uploads', (req, res) => {
   }
 });
 
-app.get('/download-folder', (req, res) => {
-  const folder = req.query.folder;
-  if (!folder) return res.status(400).send('缺少 folder 參數');
-
-  const folderPath = path.join(UPLOADS_ROOT, folder);
-  if (!fs.existsSync(folderPath)) return res.status(404).send('資料夾不存在');
-
-  const encodedFilename = encodeURIComponent(folder + '.zip');
-  res.setHeader('Content-Type', 'application/zip');
-  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFilename}`);
-
-  const archive = archiver('zip', { zlib: { level: 9 } });
-  archive.directory(folderPath, false);
-  archive.pipe(res);
-  archive.finalize();
-});
 
 // 在勤前上傳統計頁面新增下載EXCEL統計表
-
 app.get('/stats/download', async (req, res) => {
   try {
     const uploadsPath = UPLOADS_ROOT;
@@ -740,12 +567,7 @@ app.get('/stats/download', async (req, res) => {
 
 
 
-
-
-
-
-
-
+// ==================== 勤前異常事件上傳系統 API ====================
 // ✅ 大樓代碼表
 const buildingCodeMap = {
   '松山金融': 'L391',
@@ -829,7 +651,8 @@ app.get('/api/abnormal-events', async (req, res) => {
 
       if (building && meta.building !== building) continue;
       if (type && meta.type !== type) continue;
-      if (subtype && meta.subtype !== subtype) continue;
+      //if (subtype && meta.subtype !== subtype) continue;
+      if (subtype && (meta.subtype || '').trim() !== subtype.trim()) continue;
       if (displayId && !meta.displayId.includes(displayId)) continue;
 
       if (seenDisplayIds.has(meta.displayId)) continue;
@@ -856,7 +679,6 @@ app.get('/api/abnormal-events', async (req, res) => {
   }
 });
 
-
 // ✅ 上傳照片
 app.post('/api/abnormal-events/:displayId/files', abnormalUpload.array('files', 20), async (req, res) => {
   try {
@@ -868,8 +690,6 @@ app.post('/api/abnormal-events/:displayId/files', abnormalUpload.array('files', 
     console.log('📄 metaPath:', metaPath);
     const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
     console.log('📁 資料夾列表:', folders);
-
-
 
     if (!fs.existsSync(folderPath)) {
       return res.status(404).json({ error: 'event not found' });
@@ -1010,12 +830,11 @@ app.delete('/api/abnormal-events/:id', async (req, res) => {
   }
 });
 
-//變更事件狀態
+// 變更事件狀態
 app.patch('/api/abnormal-events/:id/status', async (req, res) => {
   try {
     const targetId = req.params.id;
     const newStatus = req.body.status;
-
     if (!newStatus) {
       return res.status(400).json({ error: '缺少狀態欄位' });
     }
@@ -1029,7 +848,6 @@ app.patch('/api/abnormal-events/:id/status', async (req, res) => {
         return res.json({ ok: true });
       }
     }
-
     res.status(404).json({ error: '事件不存在' });
   } catch (err) {
     console.error('更新事件狀態錯誤:', err);
@@ -1037,11 +855,92 @@ app.patch('/api/abnormal-events/:id/status', async (req, res) => {
   }
 });
 
-//✅ PATCH 修改事件內容
+// DELETE 刪除圖片
+app.delete('/api/abnormal-events/:id/files/:filename', async (req, res) => {
+  const { id, filename } = req.params;
+  try {
+    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+    for (const folder of folders) {
+      const metaPath = `${ABNORMAL_UPLOADS_ROOT}/${folder}/meta.json`;
+      const meta = await fsExtra.readJson(metaPath);
+      if (meta?.id === id) {
+        const filePath = path.join(ABNORMAL_UPLOADS_ROOT, folder, filename);
+        await fsExtra.remove(filePath);
+        meta.files = (meta.files || []).filter(f => f.filename !== filename);
+        await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
+        return res.json({ ok: true });
+      }
+    }
+    res.status(404).json({ error: '事件不存在' });
+  } catch (err) {
+    console.error('❌ 刪除失敗:', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+// 下載整個事件資料夾為 ZIP
+app.get('/download-folder', async (req, res) => {
+  const folderKey = req.query.folder;
+  if (!folderKey) return res.status(400).send('❌ 缺少 folder 參數');
+
+  try {
+    // 🔍 先嘗試在 uploads-abnormal 中比對 meta.id 或 displayId
+    const abnormalFolders = await fs.promises.readdir(ABNORMAL_UPLOADS_ROOT);
+    let matched = null;
+    let targetPath = null;
+
+    for (const folder of abnormalFolders) {
+      const metaPath = path.join(ABNORMAL_UPLOADS_ROOT, folder, 'meta.json');
+      if (!fs.existsSync(metaPath)) continue;
+
+      try {
+        const metaRaw = await fs.promises.readFile(metaPath, 'utf-8');
+        const meta = JSON.parse(metaRaw);
+        if (meta.id === folderKey || meta.displayId === folderKey) {
+          matched = folder;
+          targetPath = path.join(ABNORMAL_UPLOADS_ROOT, matched);
+          break;
+        }
+      } catch (err) {
+        console.warn('⚠️ 無法解析 meta.json:', metaPath);
+      }
+    }
+
+    // ✅ 如果異常事件沒找到，再嘗試勤前教育資料夾（直接用 folderKey）
+    if (!targetPath) {
+      const fallbackPath = path.join(UPLOADS_ROOT, folderKey);
+      if (fs.existsSync(fallbackPath)) {
+        matched = folderKey;
+        targetPath = fallbackPath;
+      }
+    }
+
+    if (!targetPath) return res.status(404).send(`❌ 找不到對應資料夾：${folderKey}`);
+    console.log('📦 matched folder =', matched);
+    console.log('📁 targetPath =', targetPath);
+
+    const encodedFilename = encodeURIComponent(matched + '.zip');
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedFilename}`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.directory(targetPath, false);
+    archive.on('error', err => {
+      console.error('❌ 壓縮失敗:', err);
+      res.status(500).send('❌ 壓縮失敗');
+    });
+    archive.pipe(res);
+    archive.finalize();
+  } catch (err) {
+    console.error('❌ 下載 ZIP 發生錯誤:', err);
+    res.status(500).send('❌ 伺服器錯誤');
+  }
+});
+
+// PATCH 修改事件內容
 app.patch('/api/abnormal-events/:id', async (req, res) => {
   const id = req.params.id;
   const { reason, description, status } = req.body;
-
   try {
     const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
     for (const folder of folders) {
@@ -1062,94 +961,205 @@ app.patch('/api/abnormal-events/:id', async (req, res) => {
   }
 });
 
-//✅ POST 上傳圖片（分類欄位改用多欄位 Multer）
-app.post('/api/abnormal-events/:id/files', upload.fields([
-  { name: 'initial', maxCount: 1 },
-  { name: 'processing', maxCount: 1 },
-  { name: 'resolved', maxCount: 1 },
-  { name: 'other', maxCount: 1 }
-]), async (req, res) => {
-  const id = req.params.id;
-  const category = req.body.category || 'general';
-  const file = req.files?.[category]?.[0]; // ✅ 根據分類取出對應檔案
-  if (!file) {
-    console.error('❌ Multer 未收到檔案，可能欄位名稱錯誤或未選擇檔案');
-    console.log('📦 req.files keys:', Object.keys(req.files || {}));
-    console.log('📦 req.body.category:', category);
-    return res.status(400).json({ error: '未收到檔案' });
-  }
+// POST 上傳圖片（多欄位，用 programmatic multer middleware 包裝以捕捉錯誤）
+app.post('/api/abnormal-events/:id/files', (req, res) => {
+  uploadSingleField(req, res, async (err) => {
+    if (err) return res.status(500).json({ error: 'upload error', detail: err.message });
 
+    try {
+      const id = req.params.id;
+      const category = req.body.category || 'initial';
+      const files = req.files;
+      if (!files || !files.length) return res.status(400).json({ error: '未收到檔案' });
 
-  if (!file) return res.status(400).json({ error: '未收到檔案' });
+      let matchedMeta = null;
+      let matchedFolder = null;
 
-  try {
-    console.log('📥 上傳中:', {
-      id,
-      category,
-      field: category,
-      file: file.originalname,
-      path: file.path
-    });
+      const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
+      for (const folder of folders) {
+        const metaPath = path.join(ABNORMAL_UPLOADS_ROOT, folder, 'meta.json');
+        if (!fsExtra.existsSync(metaPath)) continue;
+        const meta = await fsExtra.readJson(metaPath);
+        if (meta?.id === id) {
+          matchedMeta = meta;
+          matchedFolder = folder; // UUID 資料夾名稱
+          break;
+        }
+      }
 
-    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
-    for (const folder of folders) {
-      const metaPath = path.join(ABNORMAL_UPLOADS_ROOT, folder, 'meta.json');
-      const meta = await fsExtra.readJson(metaPath);
-      console.log('📁 資料夾:', folder);
-      console.log('🆔 meta.id:', meta?.id);
-      console.log('🔍 前端送入 id:', id);
-      if (meta?.id === id) {
+      if (!matchedMeta || !matchedMeta.displayId) {
+        return res.status(404).json({ error: '事件不存在' });
+      }
+
+      const displayId = matchedMeta.displayId;
+      const folderPath = path.join(ABNORMAL_UPLOADS_ROOT, displayId);
+      const metaPathFinal = path.join(folderPath, 'meta.json');
+
+      await fsExtra.ensureDir(folderPath);
+      matchedMeta.files = matchedMeta.files || [];
+
+      for (const file of files) {
         const safeName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
-        const targetPath = path.join(ABNORMAL_UPLOADS_ROOT, folder, safeName);
+        const targetPath = path.join(folderPath, safeName);
         await fsExtra.move(file.path, targetPath);
 
-        meta.files = meta.files || [];
-        meta.files.push({
+        matchedMeta.files.push({
           filename: safeName,
-          url: `/uploads-abnormal/${folder}/${safeName}`,
+          originalname: file.originalname,
           mimetype: file.mimetype,
-          category
+          size: file.size,
+          uploadedAt: new Date().toISOString(),
+          category,
+          url: `/uploads-abnormal/${displayId}/${safeName}`
         });
 
-        await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
-        return res.json({ ok: true });
+        console.log(`✅ 已搬移 ${file.originalname} ➡️ ${targetPath}`);
       }
-    }
 
-    res.status(404).json({ error: '事件不存在' });
-  } catch (err) {
-    console.error('❌ 上傳失敗:', err);
-    res.status(500).json({ error: 'server error' });
-  }
+      await fsExtra.writeJson(metaPathFinal, matchedMeta, { spaces: 2 });
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error('❌ 上傳失敗:', err);
+      return res.status(500).json({ error: 'server error', detail: err.message });
+    }
+  });
 });
 
 
-//✅ DELETE 刪除圖片
-app.delete('/api/abnormal-events/:id/files/:filename', async (req, res) => {
-  const { id, filename } = req.params;
+// ✅ 匯出 Word 文件（使用 [[...]] 標籤）
+app.get('/api/export-word', async (req, res) => {
+  const { displayId } = req.query;
+  if (!displayId) return res.status(400).send('缺少 displayId');
+
+  const folderPath = path.join(ABNORMAL_UPLOADS_ROOT, displayId);
+  const metaPath = path.join(folderPath, 'meta.json');
+  const templatePath = path.join(__dirname, 'templates', 'template.docx');
 
   try {
-    const folders = await fsExtra.readdir(ABNORMAL_UPLOADS_ROOT);
-    for (const folder of folders) {
-      const metaPath = `${ABNORMAL_UPLOADS_ROOT}/${folder}/meta.json`;
-      const meta = await fsExtra.readJson(metaPath);
-      if (meta?.id === id) {
-        const filePath = path.join(ABNORMAL_UPLOADS_ROOT, folder, filename);
-        await fsExtra.remove(filePath);
-
-        meta.files = (meta.files || []).filter(f => f.filename !== filename);
-        await fsExtra.writeJson(metaPath, meta, { spaces: 2 });
-        return res.json({ ok: true });
-      }
+    if (!await fsExtra.pathExists(metaPath)) {
+      return res.status(404).send('找不到事件');
     }
-    res.status(404).json({ error: '事件不存在' });
+
+    const meta = await fsExtra.readJson(metaPath);
+
+    const content = fs.readFileSync(templatePath, 'binary');
+    const zip = new PizZip(content);
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      delimiters: { start: '[[', end: ']]' } // ✅ 改用 [[...]] 標籤
+    });
+
+    doc.setData({
+      displayId: meta.displayId,
+      building: meta.building,
+      type: meta.type,
+      subtype: meta.subtype,
+      description: meta.description,
+      handling: meta.handling,
+      reportedBy: meta.reportedBy,
+      location: meta.location,
+      occurTime: meta.occurTime,
+      reason: meta.reason, // 新增 reason 欄位
+      suggestion: meta.suggestion,  // 新增 suggestion 欄位
+      judgement: meta.judgement,  // 新增 judgement 欄位
+      phenomenon: meta.phenomenon,  // 新增 phenomenon 欄位
+      occurTime: meta.occurTime, // 原始格式（若你還需要）
+      occurDateROC: formatToROCDate(meta.occurTime), // 民國年月日
+      occurTimeAMPM: formatToAMPM(meta.occurTime),   // 上午／下午格式
+      status: meta.status
+    });
+
+    try {
+      doc.render(); // ✅ 只保留這一次
+      const buf = doc.getZip().generate({ type: 'nodebuffer' });
+      res.setHeader('Content-Disposition', `attachment; filename=${meta.displayId}.docx`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.send(buf);
+    } catch (err) {
+      console.error('❌ Word 產生錯誤:', err);
+      if (err.properties?.errors) {
+        err.properties.errors.forEach(error => {
+          console.error('🔍 模板錯誤:', error);
+        });
+      }
+      res.status(500).send('匯出失敗');
+    }
+
   } catch (err) {
-    console.error('❌ 刪除失敗:', err);
-    res.status(500).json({ error: 'server error' });
+    console.error('❌ 匯出 Word 錯誤:', err);
+    res.status(500).send('伺服器錯誤');
   }
 });
+
+// 工具函式：格式化時間為上午/下午
+function formatToAMPM(dateStr) {
+  const date = new Date(dateStr);
+  const hour = date.getHours();
+  const minute = date.getMinutes().toString().padStart(2, '0');
+  const period = hour < 12 ? '上午' : '下午';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${period} ${hour12}:${minute}`;
+}
+// 工具函式：格式化日期為民國年月日
+function formatToROCDate(dateStr) {
+  const date = new Date(dateStr);
+  const rocYear = date.getFullYear() - 1911;
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${rocYear}/${month}/${day}`;
+}
+
+
+
+// LINE Notify 函式
+async function sendLineNotify(message) {
+  const token = '你的LINE_NOTIFY_TOKEN'; // ⚠️ 放你自己的 token
+  await axios.post('https://notify-api.line.me/api/notify',
+    `message=${encodeURIComponent(message)}`,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${token}`
+      }
+    }
+  );
+}
+
+// 建立異常事件 API
+app.post('/api/create-abnormal', async (req, res) => {
+  const meta = req.body;
+
+  // TODO: 儲存到 uploads-abnormal 或資料庫
+  console.log('📝 建立事件:', meta);
+
+  // 呼叫 LINE Notify
+  await sendLineNotify(`
+📢 異常事件通知
+編號：${meta.displayId}
+大樓：${meta.building}
+類型：${meta.type}
+狀態：${meta.status}
+  `);
+
+  res.json({ message: '事件建立成功並已通知' });
+});
+
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
+
+
+
 
 // ====== 伺服器啟動 ======
 app.listen(PORT, () => {
-  console.log(`✅ 伺服器啟動於 http://localhost:${PORT} ; UPLOADS_ROOT=${UPLOADS_ROOT}`);
+  console.log(`✅ Server is running at http://localhost:${PORT}`);
+  console.log(`📁 UPLOADS_ROOT = ${UPLOADS_ROOT}`);
+  console.log(`📁 TMP_FOLDER = ${TMP_FOLDER}`);
+  console.log(`📁 ABNORMAL_UPLOADS_ROOT = ${ABNORMAL_UPLOADS_ROOT}`);
 });
+
+

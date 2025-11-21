@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>登入系統</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; background:#f5f6fa; padding:40px; text-align:center; }
+    form { background:#fff; display:inline-block; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+    input { display:block; margin:10px auto; padding:8px; width:200px; }
+    button { padding:8px 16px; background:#28a745; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h2>🔐 登入系統</h2>
+  <form method="POST" action="/login">
+    <input type="text" name="username" placeholder="帳號" required>
+    <input type="password" name="password" placeholder="密碼" required>
+    <button type="submit">登入</button>
+  </form>
+</body>
+</html>

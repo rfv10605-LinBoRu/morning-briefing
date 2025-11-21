@@ -182,14 +182,33 @@
     .status-row button:hover {
       background-color: #0056b3;
     }
+
+    .header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .download-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #0000FF;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
   </style>
 
 </head>
 
 <body>
-
+  <div class="header">
+    <a id="downloadWordBtn" class="download-btn" href="#">匯出 Word</a>
+  </div>
   <button id="exportBtn" onclick="exportToPPT()" disabled>📤 匯出為 PPT</button>
-  <button id="exportWordBtn" onclick="exportToWord()">📝 匯出為 Word</button>
 
 
   <h2>📌 大樓異常報告詳情</h2>
@@ -258,6 +277,9 @@
         return;
       }
 
+      const pwd = prompt('請輸入修改密碼');
+      if (pwd !== '2301') return alert('❌ 密碼錯誤');
+
       // ✅ 跳轉到編輯頁面（你可以改成你自己的路徑）
       location.href = `/abnormal-edit.html?id=${id}`;
     }
@@ -297,76 +319,30 @@
       pptx.writeFile('異常報告.pptx');
     }
 
+    // 匯出 Word 按鈕事件
+    document.getElementById('downloadWordBtn').addEventListener('click', function (e) {
+      e.preventDefault(); // 防止跳轉
+      exportWord(meta.displayId); // 呼叫原本的匯出函式
+    });
 
     // ✅ 轉 Word 文件
-    async function exportToWord() {
-      const { Document, Packer, Paragraph, HeadingLevel, ImageRun } = window.docx;
-
-      if (!window.meta) {
-        alert('❌ 尚未載入事件資料');
-        return;
-      }
-
-      const meta = window.meta;
-      const allFiles = window.allFiles || [];
-
-      const doc = new Document();
-
-      doc.addSection({
-        children: [
-          new Paragraph({ text: '異常報告詳情', heading: HeadingLevel.TITLE }),
-          new Paragraph(`事件編號：${meta.displayId || meta.id}`),
-          new Paragraph(`大樓：${meta.building}`),
-          new Paragraph(`主類型：${meta.type}`),
-          new Paragraph(`樣型：${meta.subtype || '未填寫'}`),
-          new Paragraph(`異常事由：${meta.reason || '未填寫'}`),
-          new Paragraph(`發生時間：${new Date(meta.occurTime).toLocaleString()}`),
-          new Paragraph(`回報人：${meta.reportedBy}`),
-          new Paragraph(`狀態：${meta.status}`),
-          new Paragraph(`建立時間：${new Date(meta.createdAt).toLocaleString()}`),
-          new Paragraph({ text: '異常描述', heading: HeadingLevel.HEADING_2 }),
-          ...parseDescriptionTextOnly(meta.description).map(line => new Paragraph(line)),
-          new Paragraph({ text: '附圖', heading: HeadingLevel.HEADING_2 })
-        ]
-      });
-
-      const firstImage = allFiles.find(f => f.mimetype?.startsWith('image'));
-      if (firstImage) {
-        const fullUrl = location.origin + firstImage.url;
-        const imgBlob = await fetch(fullUrl).then(r => r.blob());
-
-        const imgBuffer = await imgBlob.arrayBuffer();
-
-        doc.addSection({
-          children: [
-            new Paragraph('📷 ' + (firstImage.category || '未分類')),
-            new Paragraph(
-              new ImageRun({
-                data: imgBuffer,
-                transformation: { width: 480, height: 320 }
-              })
-            )
-          ]
-        });
-      }
-
-      const blob = await Packer.toBlob(doc);
-      const url = URL.createObjectURL(blob);
+    function exportWord(displayId) {
       const a = document.createElement('a');
-      a.href = url;
-      a.download = '異常報告.docx';
+      a.href = `/api/export-word?displayId=${encodeURIComponent(displayId)}`;
+      a.download = `${displayId}.docx`;
+      document.body.appendChild(a);
       a.click();
+      a.remove();
     }
 
-
-
+    // 狀態對應表
     const statusMap = {
       reported: { label: '待審核', color: '#6c757d' },     // 灰色
       processing: { label: '處理中', color: '#007bff' },   // 藍色
       resolved: { label: '已處理', color: '#28a745' },     // 綠色
       closed: { label: '已結案', color: '#ff0000' }        // 紅色
     };
-
+    // 載入異常事件詳情
     async function loadDetail() {
       const params = new URLSearchParams(location.search);
       const id = params.get('id');
@@ -412,6 +388,7 @@
           minute: '2-digit'
         })}</div>
       <div id="descriptionBox"></div>   <!-- ✅ 插入這個容器 -->
+      <div id="detailDescriptionBox"></div> <!-- ✅ 新增這個容器 -->
       <div><strong>回報人：</strong>${data.reportedBy}</div>
       <div>
         <strong>狀態：</strong>
@@ -421,6 +398,36 @@
       </div>
       <div><strong>建立時間：</strong>${new Date(data.createdAt).toLocaleString()}</div>
     `;
+        // ✅ 拆解 description 內容
+        const descriptionBox = document.getElementById('descriptionBox');
+        if (data.description?.trim()) {
+          const lines = data.description.split(/\r?\n/);
+          descriptionBox.innerHTML = `
+    <div><strong>異常描述內容：</strong></div>
+    ${lines.map(line => `<div>${line}</div>`).join('')}
+  `;
+        } else {
+          descriptionBox.innerHTML = '<div><strong>異常描述內容：</strong>（未填寫）</div>';
+        }
+
+        const detailBox = document.getElementById('detailDescriptionBox');
+
+        const section = (label, content) => {
+          if (!content?.trim()) return '';
+          return `
+    <div style="margin-top: 8px;">
+      <strong>${label}：</strong>
+      <div style="white-space: pre-wrap; margin-left: 1em;">${content}</div>
+    </div>
+  `;
+        };
+
+        detailBox.innerHTML = [
+          section('異常說明', data.phenomenon),
+          section('初步判斷', data.judgement),
+          section('處理方式', data.handling),
+          section('建議事項', data.suggestion)
+        ].join('');
 
         renderDescription(data.description); // ✅ 描述：函式
 
@@ -437,6 +444,7 @@
 
     loadDetail();
 
+    // ✅ 狀態更新函式
     async function updateStatus() {
       const pwd = prompt('請輸入狀態更新密碼');
       if (pwd !== '2301') {

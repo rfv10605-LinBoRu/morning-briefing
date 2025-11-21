@@ -1,0 +1,20 @@
+{
+  "id": "a7a5fee2-5a34-4e90-8db7-32497ffa3ca3",
+  "displayId": "20251121-N307-001",
+  "building": "芷英大樓",
+  "type": "大樓災害事件",
+  "subtype": "火災",
+  "description": "1111\n\n111\n\n1111\n\n111111",
+  "reportedBy": "林泊儒",
+  "location": "淡江學舍C棟2F洗衣房",
+  "occurTime": "2025-11-21T16:26",
+  "phenomenon": "1111",
+  "judgement": "111",
+  "handling": "1111",
+  "suggestion": "111111",
+  "reason": "C棟主幹管堵塞異常報告",
+  "status": "reported",
+  "createdAt": "2025-11-21T08:26:42.377Z",
+  "updatedAt": "2025-11-21T08:26:42.377Z",
+  "files": []
+}

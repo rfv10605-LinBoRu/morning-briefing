@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>勤前照片上傳預覽</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+    h2, h3 {
+      color: #333;
+      margin-top: 20px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .back-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    input[type="date"] {
+      margin-bottom: 20px;
+      padding: 6px;
+      font-size: 16px;
+    }
+    .folder-block {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+    .folder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .img-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .img-block {
+      width: 150px;
+      text-align: center;
+    }
+    .preview-img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .preview-img.zoom {
+      transform: translate(-50%, -50%) scale(3);
+      z-index: 999;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
+      background: #fff;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    .action-btn {
+      margin-top: 6px;
+      padding: 6px 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+    .download-folder-btn {
+      background-color: #3498db;
+      color: white;
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+    <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">勤前上傳統計</a>
+  </div>
+
+  <h2>勤前照片上傳預覽</h2>
+  <label for="date">選擇日期：</label>
+  <input type="date" id="date" onchange="filterByDate()">
+
+  <div id="galleryContainer"></div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const date = params.get('date');
+    const building = params.get('building') || '';
+    if (date) document.getElementById('date').value = date;
+
+    fetch(`/gallery-data?date=${date}&building=${building}`)
+      .then(res => res.json())
+      .then(data => renderGallery(data.folders || []));
+
+    function filterByDate() {
+      const date = document.getElementById('date').value;
+      let url = '/gallery?date=' + date;
+      if (building) url += '&building=' + encodeURIComponent(building);
+      window.location.href = url;
+    }
+
+    function renderGallery(folders) {
+      const container = document.getElementById('galleryContainer');
+      container.innerHTML = '';
+
+      if (!folders.length) {
+        container.innerHTML = `<p>尚未上傳 ${date} 的圖片</p>`;
+        return;
+      }
+
+      folders.forEach(({ folder, files }) => {
+        const section = document.createElement('div');
+        section.className = 'folder-block';
+
+        const header = document.createElement('div');
+        header.className = 'folder-header';
+        header.innerHTML = `
+          <h3>${folder}</h3>
+          <button class="download-folder-btn" onclick="downloadFolder('${folder}')">📦 下載整組 ${folder}</button>
+        `;
+        section.appendChild(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'img-grid';
+
+        files.forEach(({ filename, url }) => {
+          const block = document.createElement('div');
+          block.className = 'img-block';
+          block.innerHTML = `
+            <img src="${url}" class="preview-img">
+            <button class="action-btn delete-btn" onclick="deleteImage('${folder}', '${filename}')">刪除</button>
+          `;
+          grid.appendChild(block);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+
+      document.querySelectorAll(".preview-img").forEach(img => {
+        img.addEventListener("click", () => {
+          img.classList.toggle("zoom");
+        });
+      });
+    }
+
+    function deleteImage(folder, filename) {
+      const pwd = prompt('請輸入刪除密碼');
+      if (pwd !== '2301') return alert('❌ 密碼錯誤，無法刪除');
+      if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
+
+      fetch('/delete-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder, filename })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('✅ 刪除成功');
+            location.reload();
+          } else {
+            alert('❌ 刪除失敗：' + data.message);
+          }
+        })
+        .catch(err => {
+          alert('❌ 發生錯誤');
+          console.error(err);
+        });
+    }
+
+    function downloadFolder(folder) {
+      const link = document.createElement('a');
+      link.href = '/download-folder?folder=' + encodeURIComponent(folder);
+      link.download = folder + '.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

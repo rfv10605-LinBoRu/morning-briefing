@@ -1,57 +1,0 @@
-{
-  "id": "4c7bcfa9-31bc-4094-a88d-817e6aa7ec36",
-  "displayId": "20251113-L336-003",
-  "building": "前瞻金融",
-  "type": "大樓災害事件",
-  "subtype": "地震",
-  "description": "異常說明：\n初步判斷：\n處理方式：\n建議事項：",
-  "reportedBy": "林泊儒",
-  "location": "淡江學舍C棟2F洗衣房",
-  "occurTime": "2025-11-13T22:14",
-  "phenomenon": "",
-  "judgement": "",
-  "handling": "",
-  "suggestion": "",
-  "reason": "異常事由",
-  "status": "reported",
-  "createdAt": "2025-11-13T14:14:23.551Z",
-  "updatedAt": "2025-11-13T14:14:23.645Z",
-  "files": [
-    {
-      "filename": "1763043263563_1762305196448-å¤åæç¤ºå®.jpg",
-      "originalname": "1762305196448-å¤åæç¤ºå®.jpg",
-      "mimetype": "image/jpeg",
-      "size": 344668,
-      "uploadedAt": "2025-11-13T14:14:23.574Z",
-      "category": "initial",
-      "url": "/api/abnormal-events/20251113-L336-003/files/1763043263563_1762305196448-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A6%C2%8C%C2%87%C3%A7%C2%A4%C2%BA%C3%A5%C2%96%C2%AE.jpg"
-    },
-    {
-      "filename": "1763043263583_1762305196530-å¤åç§ç.jpg",
-      "originalname": "1762305196530-å¤åç§ç.jpg",
-      "mimetype": "image/jpeg",
-      "size": 407176,
-      "uploadedAt": "2025-11-13T14:14:23.613Z",
-      "category": "processing",
-      "url": "/api/abnormal-events/20251113-L336-003/files/1763043263583_1762305196530-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
-    },
-    {
-      "filename": "1763043263623_1762305201467-å¤åç§ç.jpg",
-      "originalname": "1762305201467-å¤åç§ç.jpg",
-      "mimetype": "image/jpeg",
-      "size": 468493,
-      "uploadedAt": "2025-11-13T14:14:23.631Z",
-      "category": "resolved",
-      "url": "/api/abnormal-events/20251113-L336-003/files/1763043263623_1762305201467-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
-    },
-    {
-      "filename": "1763043263638_1762305204105-å¤åç§ç.jpg",
-      "originalname": "1762305204105-å¤åç§ç.jpg",
-      "mimetype": "image/jpeg",
-      "size": 527909,
-      "uploadedAt": "2025-11-13T14:14:23.645Z",
-      "category": "general",
-      "url": "/api/abnormal-events/20251113-L336-003/files/1763043263638_1762305204105-%C3%A5%C2%8B%C2%A4%C3%A5%C2%89%C2%8D%C3%A7%C2%85%C2%A7%C3%A7%C2%89%C2%87.jpg"
-    }
-  ]
-}

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>台北南區勤前照片上傳系統</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    input[type="file"] {
+      font-size: 18px;
+      /* 放大文字 */
+      padding: 10px 14px;
+      /* 放大按鈕內距 */
+      border: 2px solid #333;
+      /* 加粗邊框 */
+      border-radius: 6px;
+      /* 圓角邊框 */
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+
+    body {
+      font-family: "微軟正黑體", sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    label,
+    .note-label {
+      font-size: 16px;
+      color: #444;
+    }
+
+    select,
+    input[type="date"],
+    input[type="month"] {
+      font-size: 16px;
+      padding: 6px;
+      margin-bottom: 10px;
+    }
+
+    .upload-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      background-color: #fff;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+
+    .preview {
+      width: 120px;
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .preview-img {
+      width: 150px;
+      height: auto;
+      margin: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .preview-img.zoom {
+      transform: scale(3);
+      z-index: 999;
+      position: relative;
+    }
+
+    button {
+      font-size: 16px;
+      padding: 6px 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .info-panel {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 30px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      max-width: 800px;
+    }
+
+    .info-panel h3 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .info-row {
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .info-row ul {
+      padding-left: 20px;
+      margin: 6px 0;
+    }
+
+    .reminder {
+      background: #f9f9f9;
+      padding: 10px;
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+      color: #444;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .preview-box img {
+      max-width: 120px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="controls">
+    <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+    <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">勤前上傳統計</a>
+  </div>
+
+  <h2>勤前照片上傳</h2>
+
+  <h3>請先選擇所屬大樓別</h3>
+  <select name="building" id="building">
+    <option value="" disabled selected hidden>請選擇</option>
+    <option value="松山金融">松山金融</option>
+    <option value="前瞻金融">前瞻金融</option>
+    <option value="全球民權">全球民權</option>
+    <option value="產物大樓">產物大樓</option>
+    <option value="芷英大樓">芷英大樓</option>
+    <option value="華航大樓">華航大樓</option>
+    <option value="南京科技">南京科技</option>
+    <option value="互助營造">互助營造</option>
+    <option value="摩天大樓">摩天大樓</option>
+    <option value="新莊農會">新莊農會</option>
+    <option value="儒鴻企業">儒鴻企業</option>
+    <option value="新板傑仕堡">新板傑仕堡</option>
+    <option value="新板金融">新板金融</option>
+    <option value="桃園金融">桃園金融</option>
+    <option value="新竹大樓">新竹大樓</option>
+    <option value="竹科大樓">竹科大樓</option>
+    <option value="頭份大樓">頭份大樓</option>
+  </select>
+  <br><br>
+
+
+  <div class="upload-row">
+    <input type="file" accept="image/jpeg" multiple onchange="previewImages(this, 'preview1')">
+    <div id="preview1" class="preview-box"></div>
+    <span class="note-label">備註：勤前照片</span>
+    <button onclick="uploadImages(this, 'preview1')">點擊上傳</button>
+  </div>
+
+
+  <!-- 原本的標題 -->
+
+  <div class="info-panel">
+    <h3>今日資訊看板</h3>
+    <div class="info-row">
+      <strong>📅 今日日期：</strong>
+      <span id="todayDate">載入中...</span>
+      <span id="weekday">（星期載入中）</span>
+
+    </div>
+    <div class="info-row">
+      <strong>🌤 天氣預報：</strong>
+      <ul id="weatherList">
+        <li>台北市：載入中...</li>
+        <li>新北市：載入中...</li>
+        <li>桃園市：載入中...</li>
+        <li>新竹市：載入中...</li>
+        <li>苗栗縣：載入中...</li>
+      </ul>
+    </div>
+    <div class="info-row">
+      <strong>💡 區經理提醒：</strong>
+      <div class="reminder">
+        一、本系統預計上傳至114.11.28(五)後再另行公布。<br>
+        二、請確保照片清晰、完整，盡量控制每天上傳4至6張(包含勤前指示單)。<br>
+        三、若遇大樓設備異常，請立即通報區群組並拍照記錄。
+      </div>
+    </div>
+  </div>
+
+  <h3>勤前照片上傳預覽</h3>
+  <label for="date">選擇日期：</label>
+  <input type="date" id="date" oninput="filterByDate()">
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const images = document.querySelectorAll(".preview-img");
+      images.forEach(img => {
+        img.addEventListener("click", () => {
+          img.classList.toggle("zoom");
+        });
+      });
+    });
+    function filterByDate() {
+      const date = document.getElementById('date').value;
+      window.location.href = '/gallery?date=' + date;
+    }
+
+  </script>
+
+  <h3>勤前照片上傳統計查詢</h3>
+  <label for="month">選擇月份：</label>
+  <input type="month" id="month" onchange="filterByMonth()">
+
+  <p style="text-align:left; margin-top:24px;">
+    <a href="/abnormal.html" style="
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #ff0000;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+  ">
+      建立大樓異常報告
+    </a>
+  </p>
+
+  <script>
+    // ✅ 預設日期為今日並載入圖片
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      //document.getElementById('previewDate').value = today;
+      loadGallery();
+    });
+
+    // ✅ 上傳多張圖片
+    function uploadImages(button, previewId) {
+      const row = button.parentElement;
+      const fileInput = row.querySelector('input[type="file"]');
+      const noteLabel = row.querySelector('.note-label');
+      const building = document.getElementById('building').value;
+      const files = fileInput.files;
+      const note = noteLabel.textContent.replace('備註：', '').trim();
+
+      if (!files.length || !building) {
+        alert('請選擇所屬大樓別');
+        return;
+      }
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      formData.append('building', building);
+      formData.append('note', note);
+
+      fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message || '✅圖片上傳成功');
+
+          // ✅ 記住檔名清單
+          row.setAttribute('data-filenames', JSON.stringify(data.files));
+
+          // ✅ 清空檔案欄位
+          fileInput.value = '';
+
+          // ✅ 清空預覽區
+          const previewContainer = document.getElementById(previewId);
+          previewContainer.innerHTML = '';
+        });
+    }
+
+    // ✅ 預覽多張圖片
+    function previewImages(input, previewId) {
+      const previewContainer = document.getElementById(previewId);
+      previewContainer.innerHTML = ''; // 清空舊預覽
+
+      Array.from(input.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          previewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+
+    // ✅ 跳轉統計查詢
+    function filterByMonth() {
+      const month = document.getElementById('month').value;
+      window.location.href = '/stats?month=' + month;
+    }
+  </script>
+
+
+
+  <!-- 區經理提醒區塊 -->
+  <script>
+    // 顯示今日日期（國曆）
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    document.getElementById('todayDate').textContent = `${yyyy}年${mm}月${dd}日`;
+    document.getElementById('weekday').textContent = `（星期${weekdays[today.getDay()]}）`;
+
+    // 簡易天氣預報（使用 Open-Meteo API）
+    const cities = [
+      { name: '台北市', lat: 25.03, lon: 121.56 },
+      { name: '新北市', lat: 25.01, lon: 121.46 },
+      { name: '桃園市', lat: 24.99, lon: 121.31 },
+      { name: '新竹市', lat: 24.81, lon: 120.97 },
+      { name: '苗栗縣', lat: 24.56, lon: 120.82 }
+    ];
+
+    async function loadWeather() {
+      const list = document.getElementById('weatherList');
+      list.innerHTML = '';
+      for (const city of cities) {
+        try {
+          const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&hourly=precipitation`);
+          const data = await resp.json();
+          const weather = data.current_weather;
+          const rain = data.hourly?.precipitation?.[0] || 0;
+          const rainText = rain > 0 ? `🌧 可能降雨 (${rain}mm)` : `☀ 無降雨`;
+          const desc = `氣溫 ${weather.temperature}°C，風速 ${weather.windspeed} km/h，${rainText}`;
+          const li = document.createElement('li');
+          li.textContent = `${city.name}：${desc}`;
+          list.appendChild(li);
+        } catch (err) {
+          const li = document.createElement('li');
+          li.textContent = `${city.name}：無法取得資料`;
+          list.appendChild(li);
+        }
+      }
+    }
+
+    loadWeather();
+
+    // 紫外線指數（預設或串接 API）
+    document.getElementById('uvi').textContent = '中量級（預設）';
+    // 空氣品質（預設或串接 API）
+    document.getElementById('aqi').textContent = '良好（預設）';
+
+  </script>
+
+
+
+</body>
+
+</html>

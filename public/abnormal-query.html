@@ -213,7 +213,7 @@
         <th>樣型</th>
         <th>回報人</th>
         <th>狀態</th>
-        <th>操作</th> <!-- ✅ 新增操作欄 -->
+        <th>操作（刪除／下載）</th> <!-- ✅ 新增操作欄 -->
       </tr>
     </thead>
 
@@ -225,6 +225,28 @@
   </table>
 
   <script>
+    //✅ 加入下載函式
+    async function downloadZip(id) {
+      try {
+        const resp = await fetch(`/api/abnormal-events/${id}`);
+        if (!resp.ok) throw new Error('找不到事件');
+
+        const meta = await resp.json();
+        const folderName = meta.id; // ✅ 改成用 id
+        const zipUrl = `/download-folder?folder=${encodeURIComponent(folderName)}`;
+
+        const a = document.createElement('a');
+        a.href = zipUrl;
+        a.download = `${folderName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (err) {
+        alert('❌ 無法下載 ZIP：' + err.message);
+        console.error('下載 ZIP 錯誤:', err);
+      }
+    }
+
     // 前端新增刪除按鈕(密碼)
     async function confirmDelete(id) {
       const pwd = prompt('請輸入刪除密碼');
@@ -305,7 +327,8 @@
                 ${statusMap[e.status]?.label || e.status}
               </td>
               <td data-label="操作">
-                <button onclick="confirmDelete('${e.id}')">🗑 刪除</button>   <!-- ✅ 新增刪除按鈕 -->
+                <button onclick="confirmDelete('${e.id}')">🗑 刪除</button>   <!-- ✅ 新增刪除按鈕 --> 
+                <button onclick="downloadZip('${e.id}')" style="margin-left: 8px;">📦 下載ZIP</button>               
               </td>
 
             `;
@@ -364,6 +387,7 @@
       </td>
       <td>
         <button onclick="confirmDelete('${e.id}')">🗑 刪除</button>
+        <button onclick="downloadZip('${e.id}')" style="margin-left: 8px;">📦 下載ZIP</button>
       </td>
     `;
         eventTableBody.appendChild(tr);
@@ -439,7 +463,17 @@
       loadEvents({ buildings: building ? [building] : [] });
     });
 
-    document.getElementById('filterSubtype').addEventListener('change', loadEvents);
+    //document.getElementById('filterSubtype').addEventListener('change', loadEvents);
+    document.getElementById('filterSubtype').addEventListener('change', () => {
+      const subtype = document.getElementById('filterSubtype').value;
+      const building = document.getElementById('filterBuilding').value;
+      const type = document.getElementById('filterType').value;
+      loadEvents({
+        buildings: building ? [building] : [],
+        type,
+        subtype
+      });
+    });
 
     loadEvents();
   </script>
