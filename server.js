@@ -152,7 +152,7 @@ app.get('/', (req, res) => {
       }
       .grid {
         display: grid;
-        grid-template-columns: 200px 200px 200px; /* ✅ 每欄固定 160px */
+        grid-template-columns:  repeat(3, 1fr); /* ✅ 三欄 */
         gap: 16px; /* ✅ 格子間距 */
         justify-content: center;
         margin-top: 20px;
@@ -188,14 +188,12 @@ app.get('/', (req, res) => {
       }
       @media (max-width: 600px) {
         h1 { font-size: 18px; }
-        .grid {
-          grid-template-columns: repeat(1, 1fr); /* ✅ 手機一欄 */
-        }
         .square-btn a {
           font-size: 14px;
           padding: 10px;
         }
       }
+
     </style>
   </head>
   <body>
