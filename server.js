@@ -152,11 +152,16 @@ app.get('/', (req, res) => {
       }
       .grid {
         display: grid;
-        grid-template-columns: 200px 200px 200px; /* ✅ 每欄固定 160px */
-        gap: 16px; /* ✅ 格子間距 */
+        
+        grid-template-columns: 200px 200px 200px; /* ✅ 固定三欄 */
+        gap: 16px;
         justify-content: center;
         margin-top: 20px;
+        max-width: 640px; /* ✅ 限制最大寬度，避免桌機撐太大 */
+        margin-left: auto;
+        margin-right: auto;
       }
+
       .square-btn {
         position: relative;
         width: 100%;
@@ -188,12 +193,12 @@ app.get('/', (req, res) => {
       }
       @media (max-width: 600px) {
         h1 { font-size: 18px; }
-        .grid {
-          grid-template-columns: repeat(3, 1fr); /* ✅ 手機一欄 */
-        }
         .square-btn a {
           font-size: 14px;
           padding: 10px;
+        }
+        .grid {
+          grid-template-columns: repeat(3, 1fr); /* ✅ 手機三欄 */
         }
       }
     </style>
