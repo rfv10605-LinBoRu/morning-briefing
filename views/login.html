@@ -7,10 +7,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: #f5f6fa;
       padding: 40px;
       text-align: center;
+      margin: 0;
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      height: 80px;
+      max-width: 100%;
+      display: inline-block;
+    }
+
+    .company-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 8px;
     }
 
     form {
@@ -26,6 +45,9 @@
       margin: 10px auto;
       padding: 8px;
       width: 200px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
     }
 
     button {
@@ -35,14 +57,31 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 15px;
+    }
+
+    @media screen and (max-width: 480px) {
+      body {
+        padding: 20px;
+      }
+
+      .logo {
+        height: 64px;
+      }
+
+      input {
+        width: 100%;
+        max-width: 280px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div style="text-align: center; margin-bottom: 20px;">
-    <img src="/uploads/company-logo.png" alt="公司LOGO" style="height: 80px;">
+  <div class="logo-container">
+    <img src="/uploads/company-logo.png" alt="公司LOGO" class="logo">
   </div>
+
   <h2>🔐 登入系統</h2>
   <form method="POST" action="/login">
     <input type="text" name="username" placeholder="帳號" required>
