@@ -189,7 +189,7 @@ app.get('/', (req, res) => {
       @media (max-width: 600px) {
         h1 { font-size: 18px; }
         .grid {
-          grid-template-columns: repeat(1, 1fr); /* ✅ 手機一欄 */
+          grid-template-columns: repeat(3, 1fr); /* ✅ 手機一欄 */
         }
         .square-btn a {
           font-size: 14px;
