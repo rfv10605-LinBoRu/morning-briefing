@@ -285,6 +285,9 @@
       loadEvents(); // 初始載入全部事件
     });
 
+
+
+
     // 支援多棟大樓查詢
     async function loadEvents({ buildings = [], type = '', subtype = '', status = '', eventId = '' } = {}) {
       const eventTableBody = document.getElementById('eventTableBody');
@@ -298,18 +301,18 @@
           const events = await resp.json();
           const eventList = Array.isArray(events) ? events : [events]; // ✅ 保證是陣列
 
-
-          // ✅ 就在這裡加上去重邏輯
+          // ✅ 去重 displayId + id
           const uniqueEvents = [];
           const seen = new Set();
-          for (const e of events) {
-            if (seen.has(e.displayId)) continue;
-            seen.add(e.displayId);
+          for (const e of eventList) {
+            const key = `${e.displayId}-${e.id}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
             uniqueEvents.push(e);
           }
 
 
-          if (events.length === 0) {
+          if (uniqueEvents.length === 0) {
             eventTableBody.innerHTML = `<tr><td colspan="7">❌ 查無事件編號：${eventId}</td></tr>`;
             return;
           }
@@ -317,22 +320,20 @@
           for (const e of uniqueEvents) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td data-label="建立時間">${new Date(e.createdAt).toLocaleDateString()}</td>  <!-- ✅ 只留日期，時間隱藏 -->
-              <td data-label="事件編號"><a href="/abnormal-detail.html?id=${e.id}" target="_blank"><code>${e.displayId || e.id}</code></a></td>
-              <td data-label="大樓">${e.building}</td>
-              <td data-label="主類型">${e.type}</td>
-              <td data-label="樣型">${e.subtype || ''}</td>
-              <td data-label="回報人">${e.reportedBy || ''}</td>
-              <td data-label="狀態" style="color:${statusMap[e.status]?.color || '#000'}; font-weight:bold;">
-                ${statusMap[e.status]?.label || e.status}
-              </td>
-              <td data-label="操作">
-                <button onclick="confirmDelete('${e.id}')">🗑 刪除</button>   <!-- ✅ 新增刪除按鈕 --> 
-                <button onclick="downloadZip('${e.id}')" style="margin-left: 8px;">📦 下載ZIP</button>               
-              </td>
-
-            `;
-
+          <td data-label="建立時間">${new Date(e.createdAt).toLocaleDateString()}</td>
+          <td data-label="事件編號"><a href="/abnormal-detail.html?id=${e.id}" target="_blank"><code>${e.displayId || e.id}</code></a></td>
+          <td data-label="大樓">${e.building}</td>
+          <td data-label="主類型">${e.type}</td>
+          <td data-label="樣型">${e.subtype || ''}</td>
+          <td data-label="回報人">${e.reportedBy || ''}</td>
+          <td data-label="狀態" style="color:${statusMap[e.status]?.color || '#000'}; font-weight:bold;">
+            ${statusMap[e.status]?.label || e.status}
+          </td>
+          <td data-label="操作">
+            <button onclick="confirmDelete('${e.id}')">🗑 刪除</button>
+            <button onclick="downloadZip('${e.id}')" style="margin-left: 8px;">📦 下載ZIP</button>
+          </td>
+        `;
             eventTableBody.appendChild(tr);
           }
         } catch (err) {
@@ -341,7 +342,6 @@
         }
         return;
       }
-
 
       // ✅ 否則執行一般條件查詢
       if (buildings.length === 0) {
@@ -373,10 +373,20 @@
         return;
       }
 
+      // ✅ 加入去重 displayId
+      const uniqueEvents = [];
+      const seen = new Set();
       for (const e of allEvents) {
+        const key = `${e.displayId}-${e.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        uniqueEvents.push(e);
+      }
+
+      for (const e of uniqueEvents) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${new Date(e.createdAt).toLocaleDateString()}</td>  <!-- ✅ 只留日期，時間隱藏 -->
+      <td>${new Date(e.createdAt).toLocaleDateString()}</td>
       <td><a href="/abnormal-detail.html?id=${e.id}" target="_blank"><code>${e.displayId || e.id}</code></a></td>
       <td>${e.building}</td>
       <td>${e.type}</td>
@@ -393,6 +403,11 @@
         eventTableBody.appendChild(tr);
       }
     }
+
+
+
+
+
 
     // 事件狀態&狀態對照表（含中文與顏色）
     const statusMap = {
@@ -475,7 +490,7 @@
       });
     });
 
-    loadEvents();
+    //loadEvents();
   </script>
 
 
