@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大樓明細查詢</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    select, input, button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    .card {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f9fafc;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f2f5;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    tr:hover {
+      background: #eef6ff;
+    }
+
+    .summary {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f4ff;
+      border-radius: 6px;
+      font-weight: bold;
+      color: #0078D4;
+      text-align: right;
+    }
+
+    .delete-btn {
+      background: #d83b01;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #a52600;
+    }
+
+    .update-btn {
+      background: #107c10;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .update-btn:hover {
+      background: #0b5c0b;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏢 大樓明細查詢</h1>
+  </header>
+
+  <div class="container">
+    <div class="form-group">
+      <label for="buildingSelect">選擇大樓：</label>
+      <select id="buildingSelect"></select>
+      <button id="queryBtn">查詢</button>
+    </div>
+
+    <div id="detailResult"></div>
+  </div>
+
+  <script>
+    // ✅ 更新大樓備註
+    async function updateBuildingNote(buildingItemId) {
+      const noteValue = document.getElementById(`note-${buildingItemId}`).value.trim();
+      const res = await fetch(`http://localhost:3000/api/building-items/${buildingItemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buildingNote: noteValue })
+      });
+      const result = await res.json();
+      if (result.success) {
+        loadBuildingDetail();
+      } else {
+        alert('更新失敗');
+      }
+    }
+
+    // ✅ 載入大樓清單
+    async function loadBuildings() {
+      const res = await fetch('http://localhost:3000/api/buildings');
+      const buildings = await res.json();
+      const select = document.getElementById('buildingSelect');
+      buildings.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = `${b.code} - ${b.name}`;
+        select.appendChild(opt);
+      });
+    }
+
+    let currentItems = [];
+    let currentBuilding = null;
+
+    // ✅ 載入大樓明細
+    async function loadBuildingDetail() {
+      const buildingId = document.getElementById('buildingSelect').value;
+      if (!buildingId) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/buildings/${buildingId}`);
+        if (!res.ok) throw new Error('API 錯誤');
+
+        const building = await res.json();
+        currentItems = building.items;
+        currentBuilding = building;
+
+        renderTable(currentItems);
+      } catch (err) {
+        document.getElementById('detailResult').innerHTML = `<p style="color:red;">查詢失敗：${err.message}</p>`;
+      }
+    }
+
+    // ✅ 渲染表格與金額
+    function renderTable(items) {
+      let subtotal = 0;
+      items.forEach(i => { subtotal += i.unitPrice * i.quantity; });
+      const total = subtotal * 1.10 * 1.05;
+
+      const detail = document.getElementById('detailResult');
+      detail.innerHTML = `
+        <div class="card">
+          <h2>${currentBuilding.code} - ${currentBuilding.name}</h2>
+
+          <!-- 篩選區塊 -->
+          <div class="form-group">
+            <input type="text" id="filterType" placeholder="篩選類型">
+            <input type="text" id="filterName" placeholder="篩選項目">
+            <input type="text" id="filterNote" placeholder="篩選大樓備註">
+            <button onclick="filterItems()">篩選</button>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>類型</th>
+                <th>項目</th>
+                <th>項目備註</th>
+                <th>單位</th>
+                <th>單價</th>
+                <th>數量</th>
+                <th>小計</th>
+                <th>大樓備註</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(i => `
+                <tr>
+                  <td>${i.type}</td>
+                  <td>${i.name}</td>
+                  <td>${i.note || ''}</td>
+                  <td>${i.unit || ''}</td>
+                  <td>$${i.unitPrice}</td>
+                  <td>${i.quantity}</td>
+                  <td>$${(i.unitPrice * i.quantity).toFixed(0)}</td>
+                  <td>
+                    <input type="text" value="${i.buildingNote || ''}" id="note-${i.buildingItemId}" />
+                    <button class="update-btn" onclick="updateBuildingNote(${i.buildingItemId})">更新</button>
+                  </td>
+                  <td>
+                    <button class="delete-btn" onclick="deleteItem(${i.buildingItemId})">刪除</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="summary">
+            未稅未管銷：$${subtotal.toFixed(0)}　|　含稅含管銷：$${total.toFixed(0)}
+          </div>
+        </div>
+      `;
+    }
+
+
+    // ✅ 篩選函式
+    function filterItems() {
+      const typeKeyword = document.getElementById('filterType').value.trim().toLowerCase();
+      const nameKeyword = document.getElementById('filterName').value.trim().toLowerCase();
+      const noteKeyword = document.getElementById('filterNote').value.trim().toLowerCase();
+
+      const filtered = currentItems.filter(i => {
+        return (!typeKeyword || i.type.toLowerCase().includes(typeKeyword)) &&
+          (!nameKeyword || i.name.toLowerCase().includes(nameKeyword)) &&
+          (!noteKeyword || (i.buildingNote || '').toLowerCase().includes(noteKeyword));
+      });
+
+      // 重新渲染表格與金額
+      renderTable(filtered);
+    }
+
+    document.getElementById('queryBtn').addEventListener('click', loadBuildingDetail);
+    loadBuildings();
+
+  </script>
+</body>
+
+</html>

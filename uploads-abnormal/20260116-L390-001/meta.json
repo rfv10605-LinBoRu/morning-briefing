@@ -1,0 +1,30 @@
+{
+  "id": "10391d26-3f33-49ed-a494-c12e7b9793fb",
+  "displayId": "20260116-L390-001",
+  "building": "竹科大樓",
+  "type": "大樓設備故障",
+  "subtype": "停空調",
+  "description": "A棟\n冰機二號故障無法手動復歸\n目前現場只剩一台冰機\n\n現場檢查冷凍油異常\n\n冷凍油異常\n\n已聯繫廠商處理中",
+  "reportedBy": "鄭華皓",
+  "location": "A棟地下3樓",
+  "occurTime": "2026-01-06T10:22",
+  "phenomenon": "A棟\n冰機二號故障無法手動復歸\n目前現場只剩一台冰機\n\n現場檢查冷凍油異常",
+  "judgement": "冷凍油異常",
+  "handling": "已聯繫廠商處理中",
+  "suggestion": "",
+  "reason": "空調主機故障異常報告",
+  "status": "closed",
+  "createdAt": "2026-01-16T07:47:11.814Z",
+  "updatedAt": "2026-02-03T05:43:49.932Z",
+  "files": [
+    {
+      "filename": "1768549632086_532510.jpg",
+      "originalname": "532510.jpg",
+      "mimetype": "image/jpeg",
+      "size": 120947,
+      "uploadedAt": "2026-01-16T07:47:12.328Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260116-L390-001/files/1768549632086_532510.jpg"
+    }
+  ]
+}

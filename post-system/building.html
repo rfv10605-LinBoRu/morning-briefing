@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大樓功能入口</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 { margin: 0; font-size: 24px; }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 280px;
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .card a {
+      display: block;
+      margin: 6px 0;
+      padding: 10px;
+      background: #0078D4;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+    .card a:hover { background: #005ea2; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="buildingTitle">🏢 大樓功能入口</h1>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>📮 郵務系統</h2>
+      <a id="mailSystemLink" href="#">進入郵務系統</a>
+    </div>
+    <!-- 未來可以加訪客、施工申請等卡片 -->
+  </div>
+
+  <script type="module">
+    // 從 URL 取得 buildingId
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+
+    // 模擬大樓清單（跟 index.html 一樣）
+    const buildings = [
+      { id: 'L391', name: '松山金融' },
+      { id: 'L336', name: '前瞻金融' },
+      { id: 'N364', name: '全球民權' },
+      { id: 'L217', name: '產物大樓' },
+      { id: 'N307', name: '芷英大樓' },
+      { id: 'N236', name: '華航大樓' },
+      { id: 'L169', name: '南京科技' },
+      { id: 'N113', name: '互助營造' },
+      { id: 'L126', name: '摩天大樓' },
+      { id: 'N274', name: '新莊農會' },
+      { id: 'N393', name: '儒鴻企業' },
+      { id: 'L384', name: '新板傑仕堡' },
+      { id: 'L371', name: '新板金融' },
+      { id: 'L137', name: '桃園金融' },
+      { id: 'L215', name: '新竹大樓' },
+      { id: 'L390', name: '竹科大樓' },
+      { id: 'L432', name: '華山金融' },
+      { id: 'L367', name: '頭份大樓' }
+    ];
+
+    // 找到大樓名稱
+    const building = buildings.find(b => b.id === buildingId);
+    if (building) {
+      document.getElementById('buildingTitle').textContent = `🏢 ${building.name} 功能入口`;
+      document.getElementById('mailSystemLink').href = `mail-system.html?buildingId=${building.id}`;
+    } else {
+      document.getElementById('buildingTitle').textContent = "❌ 找不到大樓";
+    }
+  </script>
+</body>
+</html>

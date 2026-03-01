@@ -1,0 +1,39 @@
+{
+  "id": "8a1761c7-6b62-4ffe-add1-9aa2fce76be4",
+  "displayId": "20251126-L390-002",
+  "building": "竹科大樓",
+  "type": "大樓設備故障",
+  "subtype": "大樓停水",
+  "description": "自來水公司  破管搶修：建功二路61號 導致停水114/11/25 10:30~15:00\n\n停水原因：建功二路61號 破管搶修\n\n目前宣導商戶11/11/25 10:30~15:00時段請節約用水\n\n停水第一時間 通知商戶",
+  "reportedBy": "劉興貴",
+  "location": "A棟B棟C棟",
+  "occurTime": "2025-11-25T10:25",
+  "phenomenon": "自來水公司  破管搶修：建功二路61號 導致停水114/11/25 10:30~15:00",
+  "judgement": "停水原因：建功二路61號 破管搶修",
+  "handling": "目前宣導商戶11/11/25 10:30~15:00時段請節約用水",
+  "suggestion": "停水第一時間 通知商戶",
+  "reason": "停水原因：建功二路61號 破管搶修",
+  "status": "closed",
+  "createdAt": "2025-11-26T05:46:35.168Z",
+  "updatedAt": "2025-11-28T13:47:40.470Z",
+  "files": [
+    {
+      "filename": "1764159742296_1764135995388_0.jpg",
+      "originalname": "1764135995388_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 18943,
+      "uploadedAt": "2025-11-26T12:22:22.303Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251126-L390-002/files/1764159742296_1764135995388_0.jpg"
+    },
+    {
+      "filename": "1764159772290_1764135995658_Ã¦ÂÂªÃ¥ÂÂ½Ã¥ÂÂ.png",
+      "originalname": "1764135995658_Ã¦ÂÂªÃ¥ÂÂ½Ã¥ÂÂ.png",
+      "mimetype": "image/png",
+      "size": 127414,
+      "uploadedAt": "2025-11-26T12:22:52.296Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251126-L390-002/files/1764159772290_1764135995658_%C3%83%C2%A6%C3%82%C2%9C%C3%82%C2%AA%C3%83%C2%A5%C3%82%C2%91%C3%82%C2%BD%C3%83%C2%A5%C3%82%C2%90%C3%82%C2%8D.png"
+    }
+  ]
+}

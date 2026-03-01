@@ -1,0 +1,30 @@
+{
+  "id": "a92f48ca-cc97-4b00-906b-c7d464831b9a",
+  "displayId": "20260109-N307-001",
+  "building": "芷英大樓",
+  "type": "其他事件",
+  "subtype": "救護車到大樓",
+  "description": "8樓住戶因家中老人身體狀況不佳，自行聯繫救護車緊急送往醫院治療。\n\n救護人員以擔架送上救護車並由外傭陪同後離開大樓",
+  "reportedBy": "吳文龍",
+  "location": "8樓住戶宅內",
+  "occurTime": "2026-01-09T13:51",
+  "phenomenon": "8樓住戶因家中老人身體狀況不佳，自行聯繫救護車緊急送往醫院治療。",
+  "judgement": "",
+  "handling": "救護人員以擔架送上救護車並由外傭陪同後離開大樓",
+  "suggestion": "",
+  "reason": "醫療救護",
+  "status": "closed",
+  "createdAt": "2026-01-09T06:46:52.000Z",
+  "updatedAt": "2026-01-13T01:58:22.928Z",
+  "files": [
+    {
+      "filename": "1767941212773_S__2506774.jpg",
+      "originalname": "S__2506774.jpg",
+      "mimetype": "image/jpeg",
+      "size": 480544,
+      "uploadedAt": "2026-01-09T06:46:53.406Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260109-N307-001/files/1767941212773_S__2506774.jpg"
+    }
+  ]
+}

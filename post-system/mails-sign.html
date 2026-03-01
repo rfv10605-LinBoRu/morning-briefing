@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>客戶郵件簽收</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h2 {
+      color: #0078D4;
+      margin: 0;
+    }
+
+    section {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    input,
+    select {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background: #0078D4;
+      color: white;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #mailTable,
+      #mailTable * {
+        visibility: visible;
+      }
+
+      #mailTable {
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2 id="pageTitle">✍️ 客戶郵件簽收</h2>
+  </header>
+
+  <!-- 篩選區塊 -->
+  <section>
+    <h3>🔍 篩選條件</h3>
+    <select id="customerSelect">
+      <option value="">請選擇客戶</option>
+    </select>
+    <input id="customerNameInput" placeholder="客戶名稱 (可輸入部分字串)">
+    <input id="mailIdInput" placeholder="郵件編號 (可輸入部分字串)">
+    <input id="dateInput" type="date">
+    <button id="filterBtn">查詢</button>
+  </section>
+
+  <!-- 郵件清單 -->
+  <section>
+    <h3 id="mailTitle">📋 待簽收郵件清單 (0 件)</h3>
+    <button id="printBtn">🖨️ 列印郵件清單</button>
+    <button id="bulkSignBtn">✅ 一次簽收全部</button>
+    <table id="mailTable">
+      <thead>
+        <tr>
+          <th>郵件編號</th>
+          <th>物流公司</th>
+          <th>客戶統編</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 線上簽收 -->
+  <section id="signSection" style="display:none;">
+    <h3>✍️ 簽收郵件</h3>
+    <p id="signMailInfo"></p>
+    <canvas id="signaturePad"></canvas>
+    <button id="clearBtn">清除簽名</button>
+    <button id="submitBtn">確認簽收</button>
+  </section>
+
+  <script type="module">
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+    document.getElementById('pageTitle').textContent = `✍️ 客戶郵件簽收 - 大樓 ${buildingId}`;
+
+    let mails = [];
+    let currentMailId = null;
+    let bulkMode = false; // 判斷是否一次簽收
+
+    // 載入客戶清單
+    async function loadCustomers() {
+      const res = await fetch(`/api/buildings/${buildingId}/customers`);
+      const customers = await res.json();
+      const select = document.getElementById('customerSelect');
+      customers.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.taxId;
+        option.textContent = `${c.name}${c.taxId}(${c.floor})`;
+        select.appendChild(option);
+      });
+    }
+
+    // 查詢郵件
+    async function loadMails() {
+      const customerTaxId = document.getElementById('customerSelect').value;
+      const customerName = document.getElementById('customerNameInput').value.trim();
+      const mailId = document.getElementById('mailIdInput').value.trim();
+      const date = document.getElementById('dateInput').value || new Date().toISOString().split('T')[0];
+
+      let query = `/api/buildings/${buildingId}/mails/search?status=pending&`;
+      if (customerTaxId) query += `customerTaxId=${encodeURIComponent(customerTaxId)}&`;
+      if (customerName) query += `customerName=${encodeURIComponent(customerName)}&`;
+      if (mailId) query += `mailId=${encodeURIComponent(mailId)}&`;
+      if (date) query += `date=${encodeURIComponent(date)}&`;
+
+      const res = await fetch(query);
+      mails = await res.json();
+      renderTable(mails);
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector('#mailTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(m => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+      <td>${m.mailId}</td>
+      <td>${m.carrier}</td>
+      <td>
+        <div>${m.customerName || ''}</div>
+        <div style="color:#555; font-size:13px;">${m.customerTaxId}</div>
+      </td>
+      <td><button class="sign-btn" data-mailid="${m.mailId}">簽收</button></td>
+    `;
+        tbody.appendChild(row);
+      });
+
+      // 綁定簽收按鈕
+      document.querySelectorAll('.sign-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openSign(btn.getAttribute('data-mailid'), false);
+        });
+      });
+
+      document.getElementById('mailTitle').textContent = `📋 待簽收郵件清單 (${data.length} 件)`;
+    }
+
+
+    // 簽名板
+    const canvas = document.getElementById('signaturePad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    canvas.addEventListener('mousedown', e => { drawing = true; ctx.moveTo(e.offsetX, e.offsetY); });
+    canvas.addEventListener('mousemove', e => { if (drawing) { ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); } });
+    canvas.addEventListener('mouseup', () => { drawing = false; });
+    canvas.addEventListener('touchstart', e => { drawing = true; ctx.moveTo(e.touches[0].clientX, e.touches[0].clientY); });
+    canvas.addEventListener('touchmove', e => { if (drawing) { ctx.lineTo(e.touches[0].clientX, e.touches[0].clientY); ctx.stroke(); } });
+    canvas.addEventListener('touchend', () => { drawing = false; });
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 打開簽名區塊
+    function openSign(mailId, isBulk = false) {
+      bulkMode = isBulk;
+      currentMailId = mailId;
+      document.getElementById('signSection').style.display = 'block';
+      document.getElementById('signMailInfo').textContent = isBulk
+        ? `一次簽收 ${mails.length} 件郵件`
+        : `郵件編號：${mailId}`;
+      clearSignature();
+    }
+
+    // 確認簽收
+    async function submitSignature() {
+      const signatureImage = canvas.toDataURL();
+      if (!signatureImage || signatureImage.length < 100) {
+        return alert("⚠️ 請先簽名");
+      }
+
+      const now = new Date();
+      const rocYear = now.getFullYear() - 1911;
+      const signedAt = `${rocYear}/${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
+
+      if (bulkMode) {
+        // 一次簽收
+        const mailIds = mails.map(m => m.mailId);
+        const resp = await fetch(`/api/buildings/${buildingId}/mails/bulk-sign`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mailIds, signatureImage, signedAt })
+        });
+        if (resp.ok) {
+          alert(`✅ 已一次簽收 ${mailIds.length} 件郵件`);
+        } else {
+          const data = await resp.json();
+          alert("❌ 一次簽收失敗：" + (data.error || "未知錯誤"));
+        }
+      } else {
+        // 單筆簽收
+        if (!currentMailId) return alert("⚠️ 尚未選擇郵件");
+        const resp = await fetch(`/api/buildings/${buildingId}/mails/${currentMailId}/sign`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signatureImage, signedAt })
+        });
+        if (resp.ok) {
+          alert("✅ 郵件已簽收");
+        } else {
+          const data = await resp.json();
+          alert("❌ 簽收失敗：" + (data.error || "未知錯誤"));
+        }
+      }
+
+      document.getElementById('signSection').style.display = 'none';
+      loadMails();
+    }
+
+    // 綁定按鈕
+    document.getElementById('clearBtn').addEventListener('click', clearSignature);
+    document.getElementById('submitBtn').addEventListener('click', submitSignature);
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+    document.getElementById('filterBtn').addEventListener('click', loadMails);
+
+    // 一次簽收按鈕 → 打開簽名板
+    document.getElementById('bulkSignBtn').addEventListener('click', () => {
+      if (!mails || mails.length === 0) {
+        return alert("⚠️ 沒有待簽收的郵件");
+      }
+      openSign(null, true);
+    });
+
+    // 初始化
+    loadCustomers();
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateInput').value = today;
+    loadMails();
+  </script>
+</body>
+
+</html>

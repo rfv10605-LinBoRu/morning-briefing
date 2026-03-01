@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>大樓管理首頁</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+
+        header {
+            background: #0078D4;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 280px;
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card a {
+            display: block;
+            margin: 6px 0;
+            padding: 10px;
+            background: #0078D4;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .card a:hover {
+            background: #005ea2;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🏢 大樓管理系統首頁</h1>
+    </header>
+
+    <div class="container" id="buildingList">
+        <!-- 大樓卡片由 JS 動態載入 -->
+    </div>
+
+    <!-- 新增下載資料庫卡片 -->
+    <div class="container">
+        <div class="card">
+            <h2>📥 郵件系統資料庫</h2>
+            <a href="/download-mail-db">下載郵件系統 DB</a>
+        </div>
+    </div>
+
+    <footer>
+        © 2025 大樓管理系統
+    </footer>
+
+    <script type="module">
+        // 模擬後端 API 回傳的大樓清單
+        const buildings = [
+            { id: 'L391', name: '松山金融' },
+            { id: 'L336', name: '前瞻金融' },
+            { id: 'N364', name: '全球民權' },
+            { id: 'L217', name: '產物大樓' },
+            { id: 'N307', name: '芷英大樓' },
+            { id: 'N236', name: '華航大樓' },
+            { id: 'L169', name: '南京科技' },
+            { id: 'N113', name: '互助營造' },
+            { id: 'L126', name: '摩天大樓' },
+            { id: 'N274', name: '新莊農會' },
+            { id: 'N393', name: '儒鴻企業' },
+            { id: 'L384', name: '新板傑仕堡' },
+            { id: 'L371', name: '新板金融' },
+            { id: 'L137', name: '桃園金融' },
+            { id: 'L215', name: '新竹大樓' },
+            { id: 'L390', name: '竹科大樓' },
+            { id: 'L432', name: '華山金融' },
+            { id: 'L367', name: '頭份大樓' }
+        ];
+
+
+
+        const list = document.getElementById('buildingList');
+        list.innerHTML = buildings.map(b => `
+      <div class="card">
+        <h2>${b.name}</h2>
+        <a href="building.html?buildingId=${b.id}">進入大樓</a>
+      </div>
+    `).join('');
+    </script>
+</body>
+
+</html>

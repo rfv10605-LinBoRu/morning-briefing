@@ -1,0 +1,44 @@
+{
+  "displayId": "20251203-L336",
+  "zone": "台北南區",
+  "building": "L336",
+  "buildingName": "前瞻金融",
+  "date": "2025-12-03",
+  "inspector": "林泊儒",
+  "department": "區經理",
+  "createdAt": "2025-12-04T01:58:50.302Z",
+  "issues": [
+    {
+      "id": "issue-1",
+      "description": "RF排水孔-落葉堆積",
+      "photo": "1764813528617-7bolv66nhr.jpg",
+      "improvePhoto": "issue-1-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-2",
+      "description": "RF平台-雜物未清除",
+      "photo": "1764813529375-ehqln5kylu.jpg",
+      "improvePhoto": "issue-2-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-3",
+      "description": "10F自然排煙窗-防颱措施膠帶未清除",
+      "photo": "1764813529727-nshpyd1yvgj.jpg",
+      "improvePhoto": "issue-3-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-4",
+      "description": "B3F樓梯-緊急照明燈積塵",
+      "photo": "1764813530120-sn2xkcq2ciq.jpg",
+      "improvePhoto": "issue-4-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    }
+  ]
+}

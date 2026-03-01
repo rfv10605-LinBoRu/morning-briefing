@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>會議清單首頁</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 280px;
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #666;
+      margin: 4px 0;
+    }
+
+    .card a,
+    .card button {
+      display: block;
+      margin: 6px 0;
+      padding: 10px;
+      background: #0078D4;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .card a:hover,
+    .card button:hover {
+      background: #005ea2;
+    }
+
+    .delete-btn {
+      background: #d9534f !important;
+    }
+
+    .delete-btn:hover {
+      background: #c9302c !important;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .card a,
+    .card button,
+    .card .action-btn {
+      display: block;
+      margin: 6px 0;
+      padding: 10px;
+      background: #0078D4;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .card .action-btn:hover {
+      background: #005ea2;
+    }
+
+    @media(max-width:600px) {
+      h1 {
+        font-size: 20px;
+      }
+
+      .card {
+        width: 100%;
+      }
+
+      .card h2 {
+        font-size: 18px;
+      }
+
+      .card a,
+      .card button {
+        font-size: 16px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📋 會議簽到系統首頁</h1>
+  </header>
+
+  <div class="container">
+    <!-- 新增會議入口 -->
+    <div class="card">
+      <h2>➕ 建立新會議</h2>
+      <a href="create-meeting.html">前往建立頁面</a>
+    </div>
+    <!-- 下載資料庫入口 -->
+    <div class="card">
+      <h2>⬇️ 下載會議簽到資料庫</h2>
+      <a href="/download-meeting-db">下載 meeting.db</a>
+    </div>
+  </div>
+
+  <div class="container" id="meetingList">
+    <!-- 會議清單由 JS 動態載入 -->
+  </div>
+
+  <footer>
+    © 2025 會議簽到系統
+  </footer>
+
+  <script>
+    // 下載 QR Code 圖片
+    function downloadQRCode(url, filename) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // 載入會議清單
+    async function loadMeetings() {
+      const res = await fetch('/api/meetings');
+      const meetings = await res.json();
+      const list = document.getElementById('meetingList');
+
+      if (meetings.length === 0) {
+        list.innerHTML = "<p>目前尚未建立任何會議，請先前往 <a href='create-meeting.html'>建立會議</a></p>";
+        return;
+      }
+
+      const cards = meetings.map(m => {
+        const fullUrl = `https://morning-briefing-5uhm.onrender.com/public/signin.html?meetingId=${m.id}`;
+        const encoded = encodeURIComponent(fullUrl);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encoded}`;
+
+        return `
+  <div class="card">
+    <h2>${m.name}</h2>
+    <p>📅 ${m.date}</p>
+    <p>📍 ${m.location}</p>
+    <p>編號：${m.id}</p>
+    <a href="#" onclick="downloadQRCode('${qrUrl}', 'meeting-${m.id}-qrcode.png')">下載 QR Code</a>
+    <a href="signin.html?meetingId=${m.id}">簽到</a>
+    <a href="meeting-dashboard.html?meetingId=${m.id}">簽到總覽</a>
+    <a href="employee-manager.html?meetingId=${m.id}">參加人員管理</a>
+    <button class="delete-btn" onclick="deleteMeeting('${m.id}')">刪除會議</button>
+  </div>
+`;
+
+      });
+
+      list.innerHTML = cards.join('');
+    }
+
+
+    async function deleteMeeting(meetingId) {
+      if (!confirm(`確定要刪除會議 ${meetingId} 嗎？`)) return;
+      const resp = await fetch(`/api/meetings/${meetingId}`, { method: 'DELETE' });
+      const data = await resp.json();
+      if (resp.ok) {
+        alert("🗑️ 已刪除會議");
+        loadMeetings();
+      } else {
+        alert("❌ 刪除失敗：" + (data.error || "未知錯誤"));
+      }
+    }
+
+    loadMeetings();
+  </script>
+</body>
+
+</html>

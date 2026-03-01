@@ -1,0 +1,39 @@
+{
+  "id": "1a0fc9a3-b3eb-40e8-b7ea-5a420e5c084e",
+  "displayId": "20260209-L126-001",
+  "building": "摩天大樓",
+  "type": "其他事件",
+  "subtype": "警察至大樓辦案",
+  "description": "警察調閱錄影帶,協尋失蹤人口",
+  "reportedBy": "郭昆霖",
+  "location": "尋找失蹤人口6-13",
+  "occurTime": "2026-02-07T20:09",
+  "phenomenon": "警察調閱錄影帶,協尋失蹤人口",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "警察調閱錄影帶",
+  "status": "closed",
+  "createdAt": "2026-02-09T01:36:14.494Z",
+  "updatedAt": "2026-02-09T02:02:32.721Z",
+  "files": [
+    {
+      "filename": "1770600974748_S__73474091_0.jpg",
+      "originalname": "S__73474091_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 188307,
+      "uploadedAt": "2026-02-09T01:36:14.910Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260209-L126-001/files/1770600974748_S__73474091_0.jpg"
+    },
+    {
+      "filename": "1770600975125_S__73474093_0.jpg",
+      "originalname": "S__73474093_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 113729,
+      "uploadedAt": "2026-02-09T01:36:15.386Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260209-L126-001/files/1770600975125_S__73474093_0.jpg"
+    }
+  ]
+}

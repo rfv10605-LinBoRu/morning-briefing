@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>查詢大樓查核報告</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+      background: #f4f6f9;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    td a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    td a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      margin: 2px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.3s ease;
+    }
+
+    button.delete {
+      background: #dc3545;
+      /* 紅色背景 */
+      color: #fff;
+      /* 白色文字 */
+      border: none;
+      /* ✅ 去除黑色邊框 */
+      border-radius: 6px;
+      /* ✅ 圓角 */
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    button.delete:hover {
+      background: #c82333;
+      /* 深紅 hover 效果 */
+    }
+
+    button.download {
+      background: #28a745;
+      /* 綠色背景 */
+      color: #fff;
+      border: none;
+      /* ✅ 去除黑色邊框 */
+      border-radius: 6px;
+      /* ✅ 圓角 */
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    button.download:hover {
+      background: #218838;
+      /* 深綠 hover 效果 */
+    }
+
+    /* ✅ 手機排版 */
+    @media (max-width: 768px) {
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+      }
+
+      thead tr {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      td {
+        border: none;
+        padding: 8px;
+        text-align: left;
+        position: relative;
+      }
+
+      td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+        margin-bottom: 4px;
+        color: #555;
+      }
+
+      button.delete,
+      button.download {
+        font-size: 16px;
+        padding: 8px 14px;
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <a class="back-btn" href="/">回到主畫面</a>
+  </div>
+  <h2>📋 查詢大樓查核報告</h2>
+
+  <label>📍 篩選分區</label>
+  <select id="zoneSelect">
+    <option value="">全部</option>
+    <option value="台北北區">台北北區</option>
+    <option value="台北南區">台北南區</option>
+    <option value="醫療專區">醫療專區</option>
+    <option value="台灣中區">台灣中區</option>
+    <option value="台灣南區">台灣南區</option>
+  </select>
+
+  <label>🏢 篩選大樓</label>
+  <select id="buildingSelect">
+    <option value="">全部</option>
+  </select>
+
+  <label>🏛 篩選部門</label>
+  <select id="departmentSelect">
+    <option value="">全部</option>
+    <option value="區經理">區經理</option>
+    <option value="稽核室">稽核室</option>
+    <option value="物管部">物管部</option>
+  </select>
+
+  <table>
+    <thead>
+      <tr>
+        <th>查核日期</th>
+        <th>案件編號</th>
+        <th>區域</th>
+        <th>大樓</th>
+        <th>部門</th>
+        <th>查核人員</th>
+        <th>改善/缺失</th>
+        <th>改善狀況</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="reportTableBody">
+      <tr>
+        <td colspan="9">載入中...</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    const buildingMap = {
+      '台北北區': ['亞太經貿'],
+      '台北南區': ['松山金融', '前瞻金融', '全球民權', '產物大樓', '芷英大樓', '華航大樓',
+        '南京科技', '互助營造', '摩天大樓', '新莊農會', '儒鴻企業', '新板傑仕堡',
+        '新板金融', '桃園金融', '新竹大樓', '竹科大樓', '頭份大樓'],
+      '醫療專區': ['新光醫院'],
+      '台灣中區': ['台中惠國'],
+      '台灣南區': ['台南大樓']
+    };
+
+    document.getElementById('zoneSelect').addEventListener('change', () => {
+      const zone = document.getElementById('zoneSelect').value;
+      const buildingSelect = document.getElementById('buildingSelect');
+      buildingSelect.innerHTML = '<option value="">全部</option>';
+      if (buildingMap[zone]) {
+        for (const b of buildingMap[zone]) {
+          const opt = document.createElement('option');
+          opt.value = b;
+          opt.textContent = b;
+          buildingSelect.appendChild(opt);
+        }
+      }
+      loadReports();
+    });
+
+    document.getElementById('buildingSelect').addEventListener('change', loadReports);
+    document.getElementById('departmentSelect').addEventListener('change', loadReports);
+
+    async function loadReports() {
+      const zone = document.getElementById('zoneSelect').value;
+      const buildingName = document.getElementById('buildingSelect').value;
+      const department = document.getElementById('departmentSelect').value;
+
+      const resp = await fetch(`/api/check-reports`);
+      const data = await resp.json();
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = data.filter(r => {
+        if (zone && r.zone !== zone) return false;
+        if (buildingName && r.buildingName !== buildingName) return false;
+        if (department && r.department !== department) return false;
+        return true;
+      });
+
+      // ✅ 加上這一行：依查核日期由新到舊排序
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="9">目前沒有查核報告</td></tr>`;
+        return;
+      }
+
+      for (const r of filtered) {
+        const totalIssues = r.issues?.length || 0;
+        const approvedCount = r.issues?.filter(i => i.approved === true).length || 0;
+        const issueDisplay = `${approvedCount}/${totalIssues}`;
+
+        const improved = totalIssues > 0 && approvedCount === totalIssues
+          ? '✅ 已改善'
+          : '⚠️ 未改善';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="查核日期">${r.date}</td>
+          <td data-label="案件編號"><a href="/check-detail.html?id=${r.displayId}" target="_blank"><code>${r.displayId}</code></a></td>
+          <td data-label="區域">${r.zone || ''}</td>
+          <td data-label="大樓">${r.buildingName || r.building}</td>
+          <td data-label="部門">${r.department || ''}</td>
+          <td data-label="查核人員">${r.inspector}</td>
+          <td data-label="缺失數">${issueDisplay}</td>
+          <td data-label="改善狀況">${improved}</td>
+          <td data-label="操作">
+            <button class="delete" onclick="deleteReport('${r.displayId}')">刪除</button>
+            <button class="download" onclick="downloadReport('${r.displayId}')">下載</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+
+    async function deleteReport(id) {
+      if (!confirm(`確定要刪除 ${id} 的查核報告嗎？`)) return;
+      const resp = await fetch(`/api/check-reports/${id}`, { method: 'DELETE' });
+      if (resp.ok) {
+        alert('✅ 已刪除');
+        loadReports();
+      } else {
+        alert('❌ 刪除失敗');
+      }
+    }
+
+    function downloadReport(id) {
+      window.open(`/api/check-reports/${id}/download`, '_blank');
+    }
+
+    loadReports();
+  </script>
+</body>
+
+</html>

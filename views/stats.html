@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>勤前上傳統計</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            margin: 0;
+            background: #f7f8fa;
+            color: #222;
+        }
+
+        .header {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #007bff;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #28a745;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        h2 {
+            margin: 8px 0 12px 0;
+        }
+
+        .summary {
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #eaeaea;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        input[type="month"] {
+            padding: 6px;
+        }
+
+        .table-wrap {
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            padding: 8px;
+            max-height: 66vh;
+            overflow: auto;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 700px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 6px 10px;
+            text-align: center;
+            white-space: nowrap;
+            background: #fff;
+        }
+
+        th {
+            background: #f3f6fb;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            font-weight: 600;
+        }
+
+        td:first-child,
+        th:first-child {
+            position: sticky;
+            left: 0;
+            background: #f9fafb;
+            z-index: 6;
+            text-align: left;
+            padding-left: 12px;
+        }
+
+        td.ok {
+            color: #0a8a3c;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        td.miss {
+            color: #e03e2d;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+        <div>
+            <label for="month">選擇月份：</label>
+            <input type="month" id="month" onchange="changeMonth()">
+        </div>
+        <a id="downloadExcelBtn" class="download-btn" href="#">下載 Excel</a>
+    </div>
+
+    <h2 id="title">勤前上傳統計</h2>
+    <div class="table-wrap">
+        <table id="statsTable"></table>
+    </div>
+    <div class="summary" id="summary"></div>
+
+    <script>
+        const params = new URLSearchParams(location.search);
+        const month = params.get('month') || new Date().toISOString().slice(0, 7);
+        document.getElementById('month').value = month;
+        document.getElementById('downloadExcelBtn').href = '/stats/download?month=' + month;
+
+        fetch('/stats-data?month=' + month)
+            .then(res => res.json())
+            .then(data => renderStats(data));
+
+        function changeMonth() {
+            const m = document.getElementById('month').value;
+            window.location.href = '/stats?month=' + m;
+        }
+
+        function viewGallery(building, date) {
+            window.open('/gallery?building=' + encodeURIComponent(building) + '&date=' + date, '_blank');
+        }
+
+        function renderStats(data) {
+            document.getElementById('title').textContent = `${data.year}年${data.month}月 台北南區勤前上傳統計（僅上班日）`;
+
+            const table = document.getElementById('statsTable');
+            let html = `<tr><th>大樓別</th>`;
+            data.dates.forEach(d => { html += `<th>${d}</th>`; });
+            html += `</tr>`;
+
+            data.buildings.forEach(b => {
+                html += `<tr><td>${b}</td>`;
+                data.dates.forEach(d => {
+                    const exists = data.uploadMap[`${b}-${d}`];
+                    html += `<td class="${exists ? 'ok' : 'miss'}" onclick="viewGallery('${b}','${d}')">${exists ? '✅' : '⛔'}</td>`;
+                });
+                html += `</tr>`;
+            });
+            table.innerHTML = html;
+
+            const summary = document.getElementById('summary');
+            const totalDays = data.dates.length;
+            let s = `<div>本月共 <strong>${data.buildings.length}</strong> 棟大樓，實際上班日 <strong>${totalDays}</strong> 天（排除週末${data.holidays.length ? '與指定假日' : ''}）。</div>`;
+            s += `<div style="margin-top:8px;" class="summary-grid">`;
+            data.buildings.forEach(b => {
+                const uploaded = data.buildingStats[b];
+                const rate = ((uploaded / totalDays) * 100).toFixed(1);
+                const warn = rate < 80 ? ' ⚠️' : '';
+                s += `<div class="card"><strong>${b}</strong><div style="margin-top:6px;">${uploaded}/${totalDays} 天</div><div style="color:#666;margin-top:6px;">上傳率：${rate}%${warn}</div></div>`;
+            });
+            s += `</div><div style="margin-top:10px;color:#666;">已排除假日： ${data.holidays.length ? data.holidays.join(', ') : '無'}</div>`;
+            summary.innerHTML = s;
+        }
+    </script>
+</body>
+
+</html>

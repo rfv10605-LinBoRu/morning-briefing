@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>廠商管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f2f5;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .delete-btn {
+      background: #d83b01;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #a52600;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🏢 廠商管理</h1>
+  </header>
+
+  <div class="container">
+    <div class="form-group">
+      <label for="vendorName">廠商抬頭</label>
+      <input type="text" id="vendorName" placeholder="例如 XX保全公司">
+    </div>
+
+    <div class="form-group">
+      <label for="taxId">統一編號</label>
+      <input type="text" id="taxId" placeholder="例如 12345678">
+    </div>
+
+    <div class="form-group">
+      <label for="contactPerson">負責人</label>
+      <input type="text" id="contactPerson" placeholder="例如 王小明">
+    </div>
+
+    <div class="form-group">
+      <label for="phone">連絡電話</label>
+      <input type="text" id="phone" placeholder="例如 02-12345678">
+    </div>
+
+    <div class="form-group">
+      <label for="address">登記地址</label>
+      <input type="text" id="address" placeholder="例如 台北市中正區...">
+    </div>
+
+    <div class="form-group">
+      <label for="category">廠商分類</label>
+      <input type="text" id="category" placeholder="例如 消防、空調、土木、弱電">
+    </div>
+
+    <button onclick="submitVendor()">新增廠商</button>
+    <div id="result"></div>
+
+    <h2>廠商清單</h2>
+    <table id="vendorsTable">
+      <thead>
+        <tr>
+          <th>抬頭</th>
+          <th>統編</th>
+          <th>負責人</th>
+          <th>電話</th>
+          <th>地址</th>
+          <th>分類</th> <!-- ✅ 新增 -->
+          <th>合約數量</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- ✅ 編輯廠商的彈出視窗 -->
+    <div id="editModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+     background:white; padding:20px; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.2); z-index:1000;">
+      <h3>編輯廠商資訊</h3>
+      <div class="form-group"><label>廠商抬頭</label><input type="text" id="editVendorName"></div>
+      <div class="form-group"><label>統一編號</label><input type="text" id="editTaxId"></div>
+      <div class="form-group"><label>負責人</label><input type="text" id="editContactPerson"></div>
+      <div class="form-group"><label>電話</label><input type="text" id="editPhone"></div>
+      <div class="form-group"><label>地址</label><input type="text" id="editAddress"></div>
+      <div class="form-group"><label>分類</label><input type="text" id="editCategory"></div>
+      <button onclick="saveVendorEdit()">儲存</button>
+      <button onclick="closeEditModal()">取消</button>
+    </div>
+
+    <h2>該廠商的合約</h2>
+    <table id="vendorContractsTable">
+      <thead>
+        <tr>
+          <th>大樓</th>
+          <th>類型</th>
+          <th>名稱</th>
+          <th>金額</th>
+          <th>期間</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <footer>
+    © 2025 大樓管理系統
+  </footer>
+
+  <script src="js/vendors.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+{
+  "id": "1384360a-79f2-4bfd-9fd1-97dc549ad714",
+  "displayId": "20251126-L390-001",
+  "building": "竹科大樓",
+  "type": "大樓設備故障",
+  "subtype": "瓦斯外洩",
+  "description": "竹科大樓通報\n114/11/24 16:25目前b1地下室有商戶反應有瓦斯味\n\n114/11/24  16:50現場目前檢查後為B棟B1瓦斯管漏氣\n現場通知B棟經理告知B棟自行配管瓦斯管路漏氣\nB棟現場同意管理中心，先關閉B棟瓦斯總開關\n後續待B棟廠商處理瓦斯管路\n\nB棟瓦斯管路漏氣\n\n114/11/24 16:50 檢查後為B棟B1瓦斯管漏氣\n                立即關閉B棟瓦斯總開關\n114/11/25  B棟廠商瓦斯管路維修完成\n\n請商戶定期檢查瓦斯管路",
+  "reportedBy": "劉興貴",
+  "location": "b1地下室",
+  "occurTime": "2025-11-24T16:25",
+  "phenomenon": "竹科大樓通報\n114/11/24 16:25目前b1地下室有商戶反應有瓦斯味\n\n114/11/24  16:50現場目前檢查後為B棟B1瓦斯管漏氣\n現場通知B棟經理告知B棟自行配管瓦斯管路漏氣\nB棟現場同意管理中心先關閉B棟瓦斯總開關\n後續待B棟廠商處理瓦斯管路",
+  "judgement": "B棟瓦斯管路漏氣",
+  "handling": "114/11/24 16:50 檢查後為B棟B1瓦斯管漏氣\n                立即關閉B棟瓦斯總開關\n114/11/25  B棟廠商瓦斯管路維修完成",
+  "suggestion": "請商戶定期檢查瓦斯管路",
+  "reason": "B棟B1瓦斯管漏氣",
+  "status": "closed",
+  "createdAt": "2025-11-26T05:06:49.209Z",
+  "updatedAt": "2025-11-28T13:47:52.155Z",
+  "files": [
+    {
+      "filename": "1764133609551_15371_0.jpg",
+      "originalname": "15371_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 138782,
+      "uploadedAt": "2025-11-26T05:06:49.695Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133609551_15371_0.jpg"
+    },
+    {
+      "filename": "1764133609587_15373_0.jpg",
+      "originalname": "15373_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 152844,
+      "uploadedAt": "2025-11-26T05:06:49.695Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133609587_15373_0.jpg"
+    },
+    {
+      "filename": "1764133609663_522608_0.jpg",
+      "originalname": "522608_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 116244,
+      "uploadedAt": "2025-11-26T05:06:49.695Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133609663_522608_0.jpg"
+    },
+    {
+      "filename": "1764133609690_522611_0.jpg",
+      "originalname": "522611_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 98232,
+      "uploadedAt": "2025-11-26T05:06:49.695Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133609690_522611_0.jpg"
+    },
+    {
+      "filename": "1764133610002_101241.jpg",
+      "originalname": "101241.jpg",
+      "mimetype": "image/jpeg",
+      "size": 239828,
+      "uploadedAt": "2025-11-26T05:06:50.326Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133610002_101241.jpg"
+    },
+    {
+      "filename": "1764133610222_101243.jpg",
+      "originalname": "101243.jpg",
+      "mimetype": "image/jpeg",
+      "size": 102322,
+      "uploadedAt": "2025-11-26T05:06:50.326Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133610222_101243.jpg"
+    },
+    {
+      "filename": "1764133610275_101244.jpg",
+      "originalname": "101244.jpg",
+      "mimetype": "image/jpeg",
+      "size": 105073,
+      "uploadedAt": "2025-11-26T05:06:50.326Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133610275_101244.jpg"
+    },
+    {
+      "filename": "1764133610293_101320.jpg",
+      "originalname": "101320.jpg",
+      "mimetype": "image/jpeg",
+      "size": 147246,
+      "uploadedAt": "2025-11-26T05:06:50.326Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251126-L390-001/files/1764133610293_101320.jpg"
+    }
+  ]
+}

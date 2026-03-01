@@ -1,0 +1,66 @@
+{
+  "id": "ca683d11-ca61-4b4a-9de9-57ac1efee7a5",
+  "displayId": "20260130-L126-001",
+  "building": "摩天大樓",
+  "type": "其他事件",
+  "subtype": "群眾抗爭",
+  "description": "10:48抗議民眾至大樓1F舉牌抗議,已請保全勿讓抗議民眾進大樓。\n11:18抗議民眾離開。",
+  "reportedBy": "郭昆霖",
+  "location": "1F廣場",
+  "occurTime": "2026-01-30T10:48",
+  "phenomenon": "10:48抗議民眾至大樓1F舉牌抗議,已請保全勿讓抗議民眾進大樓。\n11:18抗議民眾離開。",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "民眾抗議舉牌",
+  "status": "closed",
+  "createdAt": "2026-01-30T03:27:13.257Z",
+  "updatedAt": "2026-02-03T05:43:38.035Z",
+  "files": [
+    {
+      "filename": "1769743633522_7218717_0.jpg",
+      "originalname": "7218717_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 134434,
+      "uploadedAt": "2026-01-30T03:27:13.849Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260130-L126-001/files/1769743633522_7218717_0.jpg"
+    },
+    {
+      "filename": "1769743634273_7218718_0.jpg",
+      "originalname": "7218718_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 190796,
+      "uploadedAt": "2026-01-30T03:27:14.795Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260130-L126-001/files/1769743634273_7218718_0.jpg"
+    },
+    {
+      "filename": "1769743634463_7218719_0.jpg",
+      "originalname": "7218719_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 224354,
+      "uploadedAt": "2026-01-30T03:27:14.795Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260130-L126-001/files/1769743634463_7218719_0.jpg"
+    },
+    {
+      "filename": "1769743634616_799348.jpg",
+      "originalname": "799348.jpg",
+      "mimetype": "image/jpeg",
+      "size": 268742,
+      "uploadedAt": "2026-01-30T03:27:14.795Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260130-L126-001/files/1769743634616_799348.jpg"
+    },
+    {
+      "filename": "1769743634713_799343.jpg",
+      "originalname": "799343.jpg",
+      "mimetype": "image/jpeg",
+      "size": 252513,
+      "uploadedAt": "2026-01-30T03:27:14.795Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260130-L126-001/files/1769743634713_799343.jpg"
+    }
+  ]
+}

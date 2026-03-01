@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>大樓異常報告查詢</title>
+  <style>
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      box-sizing: border-box;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #007bff;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    select,
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      background-color: #fff;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f0f0f0;
+      font-weight: 600;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media screen and (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 16px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 10px;
+        background-color: #fff;
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border: none;
+        border-bottom: 1px solid #eee;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #555;
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button.delete,
+    button.download {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button.delete {
+      background: #dc3545;
+      color: #fff;
+    }
+
+    button.delete:hover {
+      background: #c82333;
+    }
+
+    button.download {
+      background: #28a745;
+      color: #fff;
+    }
+
+    button.download:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+  </div>
+  <h2>📑 大樓異常報告查詢</h2>
+
+  <label>📍 篩選分區
+    <select id="zoneSelect">
+      <option value="">全部</option>
+      <option value="台北北區">台北北區</option>
+      <option value="台北南區">台北南區</option>
+      <option value="醫療專區">醫療專區</option>
+      <option value="台灣中區">台灣中區</option>
+      <option value="台灣南區">台灣南區</option>
+    </select>
+  </label>
+
+  <label>🏢 篩選大樓
+    <select id="filterBuilding">
+      <option value="">全部</option>
+    </select>
+  </label>
+
+  <label>⚠️ 篩選主類型
+    <select id="filterType">
+      <option value="">全部</option>
+      <option value="大樓災害事件">大樓災害事件</option>
+      <option value="大樓設備故障">大樓設備故障</option>
+      <option value="意外事故">意外事故</option>
+      <option value="其他事件">其他事件</option>
+    </select>
+  </label>
+
+  <label>🧩 篩選樣型
+    <select id="filterSubtype">
+      <option value="">全部</option>
+    </select>
+  </label>
+
+  <label>🔍 查詢事件編號
+    <input type="text" id="filterEventId" placeholder="請輸入事件編號（如 20251110-L126-001）"
+      style="width:100%; padding:8px; margin-top:6px;" />
+  </label>
+
+  <table>
+    <thead>
+      <tr>
+        <th>建立時間</th>
+        <th>事件編號</th>
+        <th>大樓</th>
+        <th>主類型</th>
+        <th>樣型</th>
+        <th>回報人</th>
+        <th>狀態</th>
+        <th>操作</th> <!-- ✅ 新增操作欄 -->
+      </tr>
+    </thead>
+
+    <tbody id="eventTableBody">
+      <tr>
+        <td colspan="7">載入中...</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    //✅ 加入下載函式
+    async function downloadZip(id) {
+      try {
+        const resp = await fetch(`/api/abnormal-events/${id}`);
+        if (!resp.ok) throw new Error('找不到事件');
+
+        const meta = await resp.json();
+        const folderName = meta.id; // ✅ 改成用 id
+        const zipUrl = `/download-folder?folder=${encodeURIComponent(folderName)}`;
+
+        const a = document.createElement('a');
+        a.href = zipUrl;
+        a.download = `${folderName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (err) {
+        alert('❌ 無法下載 ZIP：' + err.message);
+        console.error('下載 ZIP 錯誤:', err);
+      }
+    }
+
+    // 前端新增刪除按鈕(密碼)
+    async function confirmDelete(id) {
+      const pwd = prompt('請輸入刪除密碼');
+      if (pwd !== '2301') {               // ✅ 密碼變更
+        alert('❌ 密碼錯誤，無法刪除');
+        return;
+      }
+
+      if (!confirm('確定要刪除這筆事件嗎？')) return;
+
+      try {
+        const resp = await fetch(`/api/abnormal-events/${id}`, {
+          method: 'DELETE'
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        alert('✅ 已成功刪除');
+        loadEvents(); // 重新載入列表
+      } catch (err) {
+        alert('❌ 刪除失敗：' + err.message);
+      }
+    }
+
+
+    // 新增手動輸入事件編號2
+    document.getElementById('filterEventId').addEventListener('input', () => {
+      const eventId = document.getElementById('filterEventId').value.trim();
+      if (eventId) {
+        loadEvents({ eventId }); // ✅ 查詢指定事件編號
+      } else {
+        loadEvents(); // ✅ 清空後重新載入全部
+      }
+    });
+
+    // 初始化頁面時載入全部事件（可選）
+    window.addEventListener('DOMContentLoaded', () => {
+      loadEvents(); // 初始載入全部事件
+    });
+
+
+
+
+    // 支援多棟大樓查詢
+    async function loadEvents({ buildings = [], type = '', subtype = '', status = '', eventId = '' } = {}) {
+      const eventTableBody = document.getElementById('eventTableBody');
+      eventTableBody.innerHTML = '';
+
+      // ✅ 如果有輸入事件編號，直接查詢該事件
+      if (eventId) {
+        try {
+          const resp = await fetch(`/api/abnormal-events?displayId=${encodeURIComponent(eventId)}`);
+          if (!resp.ok) throw new Error(await resp.text());
+          const events = await resp.json();
+          const eventList = Array.isArray(events) ? events : [events]; // ✅ 保證是陣列
+
+          // ✅ 去重 displayId + id
+          const uniqueEvents = [];
+          const seen = new Set();
+          for (const e of eventList) {
+            const key = `${e.displayId}-${e.id}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            uniqueEvents.push(e);
+          }
+          // ✅ 加上這一段：依建立時間由新到舊排序
+          uniqueEvents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+          if (uniqueEvents.length === 0) {
+            eventTableBody.innerHTML = `<tr><td colspan="7">❌ 查無事件編號：${eventId}</td></tr>`;
+            return;
+          }
+
+          for (const e of uniqueEvents) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+          <td data-label="建立時間">${new Date(e.createdAt).toLocaleDateString()}</td>
+          <td data-label="事件編號"><a href="/abnormal-detail.html?id=${e.id}" target="_blank"><code>${e.displayId || e.id}</code></a></td>
+          <td data-label="大樓">${e.building}</td>
+          <td data-label="主類型">${e.type}</td>
+          <td data-label="樣型">${e.subtype || ''}</td>
+          <td data-label="回報人">${e.reportedBy || ''}</td>
+          <td data-label="狀態" style="color:${statusMap[e.status]?.color || '#000'}; font-weight:bold;">
+            ${statusMap[e.status]?.label || e.status}
+          </td>
+          <td data-label="操作">
+            <button class="delete" onclick="confirmDelete('${e.id}')">刪除</button>
+            <button class="download" onclick="downloadZip('${e.id}')" style="margin-left: 8px;">下載</button>
+          </td>
+        `;
+            eventTableBody.appendChild(tr);
+          }
+        } catch (err) {
+          console.error('❌ 查詢事件編號錯誤:', err);
+          eventTableBody.innerHTML = `<tr><td colspan="7">❌ 查詢失敗：${err.message}</td></tr>`;
+        }
+        return;
+      }
+
+      // ✅ 否則執行一般條件查詢
+      if (buildings.length === 0) {
+        const selectedBuilding = document.getElementById('filterBuilding').value;
+        if (selectedBuilding) buildings = [selectedBuilding];
+      }
+      if (!type) type = document.getElementById('filterType').value;
+      if (!subtype) subtype = document.getElementById('filterSubtype').value;
+
+      const allEvents = [];
+      for (const b of buildings.length ? buildings : ['']) {
+        const params = new URLSearchParams();
+        if (b) params.append('building', b);
+        if (type) params.append('type', type);
+        if (subtype) params.append('subtype', subtype);
+        if (status) params.append('status', status);
+
+        try {
+          const resp = await fetch(`/api/abnormal-events?${params.toString()}`);
+          const data = await resp.json();
+          allEvents.push(...data);
+        } catch (err) {
+          console.error('❌ 查詢事件錯誤:', err);
+        }
+      }
+
+      if (allEvents.length === 0) {
+        eventTableBody.innerHTML = `<tr><td colspan="7">目前沒有異常事件</td></tr>`;
+        return;
+      }
+
+      // ✅ 加入去重 displayId
+      const uniqueEvents = [];
+      const seen = new Set();
+      for (const e of allEvents) {
+        const key = `${e.displayId}-${e.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        uniqueEvents.push(e);
+      }
+
+      for (const e of uniqueEvents) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td>${new Date(e.createdAt).toLocaleDateString()}</td>
+      <td><a href="/abnormal-detail.html?id=${e.id}" target="_blank"><code>${e.displayId || e.id}</code></a></td>
+      <td>${e.building}</td>
+      <td>${e.type}</td>
+      <td>${e.subtype || ''}</td>
+      <td>${e.reportedBy || ''}</td>
+      <td style="color:${statusMap[e.status]?.color || '#000'}; font-weight:bold;">
+        ${statusMap[e.status]?.label || e.status}
+      </td>
+      <td>
+        <button class="delete" onclick="confirmDelete('${e.id}')">刪除</button>
+        <button class="download" onclick="downloadZip('${e.id}')" style="margin-left: 8px;">下載</button>
+      </td>
+    `;
+        eventTableBody.appendChild(tr);
+      }
+    }
+
+
+
+
+
+
+    // 事件狀態&狀態對照表（含中文與顏色）
+    const statusMap = {
+      reported: { label: '待審核', color: '#6c757d' },     // 灰色
+      processing: { label: '處理中', color: '#007bff' },   // 藍色
+      resolved: { label: '已處理', color: '#28a745' },     // 綠色
+      closed: { label: '已結案', color: '#ff0000' }        // 紅色
+    };
+
+
+    const buildingMap = {
+      '台北北區': ['亞太經貿'],
+      '台北南區': ['松山金融', '前瞻金融', '全球民權', '產物大樓', '芷英大樓', '華航大樓',
+        '南京科技', '互助營造', '摩天大樓', '新莊農會', '儒鴻企業', '新板傑仕堡',
+        '新板金融', '桃園金融', '新竹大樓', '竹科大樓', '頭份大樓', '新莊大樓', '中壢大樓', '亞洲廣場', '楊梅大樓'],
+      '醫療專區': ['新光醫院'],
+      '台灣中區': ['台中惠國'],
+      '台灣南區': ['台南大樓']
+    };
+
+    // 修正分區篩選
+    document.getElementById('zoneSelect').addEventListener('change', () => {
+      const zone = document.getElementById('zoneSelect').value;
+      const buildingSelect = document.getElementById('filterBuilding');
+
+      // 清空大樓選單
+      buildingSelect.innerHTML = '<option value="">全部大樓</option>';
+
+      // ✅ 根據分區更新大樓選單
+      const buildings = buildingMap[zone] || [];
+      for (const b of buildings) {
+        const opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        buildingSelect.appendChild(opt);
+      }
+
+      // ✅ 查詢該分區所有大樓事件
+      loadEvents({ buildings });
+    });
+
+
+
+    const subTypeMap = {
+      '大樓災害事件': ['地震', '火災', '颱風', '水災', '發現爆裂物', '大樓滲水或積水', '大樓遭受外力受損', '爆水管'],
+      '大樓設備故障': ['停空調', '大樓停水', '大樓停電', '污、廢、排水系統', '照明故障', '電梯故障', '鐵捲門故障', '外牆玻璃破損', '車場收費、管制系統', '電話系統', '瓦斯外洩'],
+      '意外事故': ['竊盜事件', '人員傷亡', '電梯關人', '外牆清洗意外事件', '人員特殊異常事件', '人員闖頂樓'],
+      '其他事件': ['警察至大樓辦案', '群眾抗爭', '媒體報導事件', '無預警無人辦公', '消防隊到大樓', '救護車到大樓', '勤務人員異常事件']
+    };
+
+    document.getElementById('filterType').addEventListener('change', () => {
+      const type = document.getElementById('filterType').value;
+      const subSelect = document.getElementById('filterSubtype');
+      subSelect.innerHTML = '<option value="">全部</option>';
+      if (subTypeMap[type]) {
+        for (const sub of subTypeMap[type]) {
+          const opt = document.createElement('option');
+          opt.value = sub;
+          opt.textContent = sub;
+          subSelect.appendChild(opt);
+        }
+      }
+      loadEvents();
+    });
+
+    document.getElementById('filterBuilding').addEventListener('change', () => {
+      const building = document.getElementById('filterBuilding').value;
+      loadEvents({ buildings: building ? [building] : [] });
+    });
+
+    //document.getElementById('filterSubtype').addEventListener('change', loadEvents);
+    document.getElementById('filterSubtype').addEventListener('change', () => {
+      const subtype = document.getElementById('filterSubtype').value;
+      const building = document.getElementById('filterBuilding').value;
+      const type = document.getElementById('filterType').value;
+      loadEvents({
+        buildings: building ? [building] : [],
+        type,
+        subtype
+      });
+    });
+
+    //loadEvents();
+  </script>
+
+
+</body>
+
+</html>

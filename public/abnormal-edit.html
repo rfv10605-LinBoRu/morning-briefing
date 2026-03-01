@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>修改異常報告</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    img {
+      max-width: 160px;
+      border-radius: 6px;
+      margin-right: 12px;
+      margin-bottom: 6px;
+    }
+
+    .image-block {
+      margin-bottom: 16px;
+    }
+
+    .image-group {
+      margin-bottom: 24px;
+    }
+
+    .image-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .image-card {
+      border: 1px solid #ccc;
+      padding: 8px;
+      width: 160px;
+      text-align: center;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+
+    .thumbnail {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .image-label {
+      font-size: 12px;
+      margin: 6px 0;
+      color: #333;
+    }
+
+    .delete-button {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+
+    .image-card button {
+      margin: 4px 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>✏️ 修改異常報告</h2>
+
+  <div id="formBox">
+    <label>事件編號</label>
+    <input id="displayId" disabled />
+
+    <label>大樓</label>
+    <input id="building" disabled />
+
+    <label>主類型</label>
+    <input id="type" disabled />
+
+    <label>異常事由</label>
+    <input id="reason" />
+
+    <label>異常描述</label>
+    <textarea id="description" rows="6"></textarea>
+
+    <button onclick="saveEdit()">💾 儲存修改</button>
+
+    <h3></h3>
+    <div id="imageList"></div>
+
+    <label>新增初步照片</label>
+    <input type="file" id="photoInitial" name="initial" multiple accept="image/*" />
+    <button onclick="uploadImages('initial')">📤 上傳初步</button>
+
+    <label>新增處理中照片</label>
+    <input type="file" id="photoProcessing" name="processing" multiple accept="image/*" />
+    <button onclick="uploadImages('processing')">📤 上傳處理中</button>
+
+    <label>新增完成照片</label>
+    <input type="file" id="photoResolved" name="resolved" multiple accept="image/*" />
+    <button onclick="uploadImages('resolved')">📤 上傳完成</button>
+
+    <label>新增其他照片</label>
+    <input type="file" id="photoGeneral" name="general" multiple accept="image/*" />
+    <button onclick="uploadImages('general')">📤 上傳其他</button>
+
+
+
+
+  </div>
+
+  <script>
+
+    //預覽圖片畫面排版
+    async function renderImages(files) {
+      const container = document.getElementById('imageList');
+      container.innerHTML = '';
+
+      if (!files || !Array.isArray(files)) return;
+
+      const categories = ['initial', 'processing', 'resolved', 'general'];
+
+      // ✅ 類別中文標籤對應表
+      const categoryLabels = {
+        initial: '📸 初步發生照片',
+        processing: '🛠️ 處理中照片',
+        resolved: '✅ 處理完成照片',
+        general: '📂 其他照片'
+      };
+
+      const grouped = {};
+      for (const cat of categories) {
+        grouped[cat] = files.filter(f => f.category === cat);
+      }
+
+      for (const cat of categories) {
+        const group = grouped[cat];
+        if (!group.length) continue;
+
+        const section = document.createElement('div');
+        section.className = 'image-group';
+
+        const title = document.createElement('h4');
+        title.textContent = categoryLabels[cat] || `📂 類別：${cat}`; // ✅ 套用中文標籤
+        section.appendChild(title);
+
+        const row = document.createElement('div');
+        row.className = 'image-row';
+
+        for (const f of group) {
+          const filename = f.filename || (f.url?.split('/').pop());
+          if (!filename) continue;
+
+          const card = document.createElement('div');
+          card.className = 'image-card';
+
+          const img = document.createElement('img');
+          img.src = f.url;
+          img.alt = f.originalname || filename;
+          img.className = 'thumbnail';
+
+          const label = document.createElement('div');
+          label.className = 'image-label';
+          label.textContent = f.originalname || filename;
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '🗑️ 刪除';
+          delBtn.className = 'delete-button'; // ✅ 加上紅色樣式
+          delBtn.onclick = () => deleteImage(filename);
+
+          const viewBtn = document.createElement('button');
+          viewBtn.textContent = '🔍 查看';
+          viewBtn.onclick = () => window.open(f.url, '_blank');
+
+          card.appendChild(img);
+          card.appendChild(label);
+
+          card.appendChild(delBtn);
+          row.appendChild(card);
+        }
+
+        section.appendChild(row);
+        container.appendChild(section);
+      }
+    }
+
+
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    async function loadEvent() {
+      const id = new URLSearchParams(location.search).get('id');
+      if (!id) return alert('❗ 缺少事件編號');
+
+      const resp = await fetch(`/api/abnormal-events/${id}`);
+      if (!resp.ok) return alert('❌ 無法載入事件');
+
+      const data = await resp.json();
+      document.getElementById('displayId').value = data.displayId || data.id;
+      document.getElementById('building').value = data.building;
+      document.getElementById('type').value = data.type;
+      document.getElementById('reason').value = data.reason || '';
+      document.getElementById('description').value = data.description || '';
+      renderImages(data.files || []);
+
+      currentDisplayId = data.displayId;
+
+    }
+
+    async function saveEdit() {
+      const id = new URLSearchParams(location.search).get('id');
+      const reason = document.getElementById('reason').value;
+      const description = document.getElementById('description').value;
+
+
+
+      const resp = await fetch(`/api/abnormal-events/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, description })
+      });
+
+      if (!resp.ok) return alert('❌ 修改失敗');
+      alert('✅ 修改成功');
+      location.href = `/abnormal-detail.html?id=${id}`;
+    }
+
+
+
+    async function deleteImage(filename) {
+      const id = new URLSearchParams(location.search).get('id');
+      const resp = await fetch(`/api/abnormal-events/${id}/files/${filename}`, { method: 'DELETE' });
+      if (!resp.ok) return alert('❌ 刪除失敗');
+      alert('✅ 已刪除圖片');
+      loadEvent();
+    }
+
+    function getInputId(category) {
+      const map = {
+        initial: 'photoInitial',
+        processing: 'photoProcessing',
+        resolved: 'photoResolved',
+        general: 'photoGeneral'
+      };
+      return map[category];
+    }
+
+    async function uploadImages(category) {
+      const allowedFields = ['initial', 'processing', 'resolved', 'general'];
+      if (!allowedFields.includes(category)) {
+        alert(`❌ 無效的分類欄位：${category}`);
+        return;
+      }
+
+      // ✅ 從全域變數取得 displayId（請在 loadEvent() 時設定）
+      const displayId = currentDisplayId;
+      if (!displayId || typeof displayId !== 'string') {
+        alert('❌ 無法取得 displayId，請確認事件資料是否正確載入');
+        return;
+      }
+
+      const inputId = getInputId(category);
+      const fileInput = document.getElementById(inputId);
+      const files = fileInput?.files;
+
+      if (!files || !files.length) {
+        alert('❗ 請選擇圖片');
+        return;
+      }
+
+      let successCount = 0;
+      let failList = [];
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('files', file);
+        formData.append('category', category);
+
+        try {
+          const resp = await fetch(`/api/abnormal-events/${encodeURIComponent(displayId)}/files`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (resp.ok) {
+            successCount++;
+          } else {
+            failList.push(file.name);
+            const errorText = await resp.text();
+            console.error(`❌ 上傳失敗：${file.name}`, errorText);
+          }
+        } catch (err) {
+          failList.push(file.name);
+          console.error(`❌ fetch 發生錯誤：${file.name}`, err);
+        }
+      }
+
+      fileInput.value = '';
+
+      if (failList.length) {
+        alert(`❌ 上傳失敗：${failList.join(', ')}`);
+      }
+
+      if (successCount > 0) {
+        alert(`✅ 成功上傳 ${successCount} 張圖片`);
+        loadEvent(); // 重新載入事件資料
+      }
+    }
+
+    async function uploadDebugAll() {
+      const id = new URLSearchParams(location.search).get('displayId');
+      const categories = ['initial', 'processing', 'resolved', 'general'];
+      const results = [];
+
+      for (const category of categories) {
+        const inputId = getInputId(category);
+        const fileInput = document.getElementById(id);
+        const files = fileInput?.files;
+
+        if (!files || !files.length) {
+          results.push(`❌ ${category}: 未選擇圖片`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append(category, files[0]); // 只測試第一張
+        formData.append('category', category);
+
+        try {
+          const resp = await fetch(`/api/abnormal-events/${id}/files-debug`, {
+            method: 'POST',
+            body: formData
+          });
+          const result = await resp.json();
+          console.log(`🐞 ${category} 測試結果:`, result);
+          results.push(`✅ ${category}: 成功 (${result.receivedFiles?.[0]})`);
+        } catch (err) {
+          console.error(`❌ ${category} 測試錯誤:`, err);
+          results.push(`❌ ${category}: 錯誤 ${err.message}`);
+        }
+      }
+
+      alert('🐞 測試完成：\n' + results.join('\n'));
+    }
+
+
+    loadEvent();
+  </script>
+
+</body>
+
+</html>

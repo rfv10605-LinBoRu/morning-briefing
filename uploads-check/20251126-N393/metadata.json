@@ -1,0 +1,44 @@
+{
+  "displayId": "20251126-N393",
+  "zone": "台北南區",
+  "building": "N393",
+  "buildingName": "儒鴻企業",
+  "date": "2025-11-26",
+  "inspector": "林泊儒",
+  "department": "區經理",
+  "createdAt": "2025-11-26T03:05:14.203Z",
+  "issues": [
+    {
+      "id": "issue-1",
+      "description": "1F外側石椅-燈帶掉落",
+      "photo": "1764126312883-s7y8179234.png",
+      "improvePhoto": "issue-1-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-2",
+      "description": "1F樓梯間-樓層指示燈線路外露",
+      "photo": "1764126313394-3na8lpv6aeo.png",
+      "improvePhoto": "issue-2-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-3",
+      "description": "2F陽台-窗戶上方蜘蛛網",
+      "photo": "1764126313860-95395iwmvht.png",
+      "improvePhoto": "issue-3-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-4",
+      "description": "14F崁燈-移位",
+      "photo": "1764126314026-c05r3zt5uov.jpg",
+      "improvePhoto": "issue-4-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    }
+  ]
+}

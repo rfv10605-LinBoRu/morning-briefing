@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>郵務系統入口</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 280px;
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .card a {
+      display: block;
+      margin: 6px 0;
+      padding: 10px;
+      background: #0078D4;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    .card a:hover {
+      background: #005ea2;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 id="mailSystemTitle">📮 郵務系統入口</h1>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>👤 建立客戶資料</h2>
+      <a id="customerLink" href="#">進入</a>
+    </div>
+    <div class="card">
+      <h2>📦 掃描當日郵件</h2>
+      <a id="scanLink" href="#">進入</a>
+    </div>
+    <div class="card">
+      <h2>✍️ 客戶郵件簽收</h2>
+      <a id="signLink" href="#">進入</a>
+    </div>
+    <div class="card">
+      <h2>📑 郵件查詢與篩選</h2>
+      <a id="searchLink" href="#">進入</a>
+    </div>
+    <div class="card">
+      <h2>📊 郵件統計報表</h2>
+      <a id="statsLink" href="#">進入</a>
+    </div>
+  </div>
+
+  <script type="module">
+    // 取得 buildingId
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+
+    // 更新標題
+    document.getElementById('mailSystemTitle').textContent = `📮 郵務系統入口 - 大樓 ${buildingId}`;
+
+    // 設定各功能入口連結
+    document.getElementById('customerLink').href = `customers.html?buildingId=${buildingId}`;
+    document.getElementById('scanLink').href = `mails-scan.html?buildingId=${buildingId}`;
+    document.getElementById('signLink').href = `mails-sign.html?buildingId=${buildingId}`;
+    document.getElementById('statsLink').href = `mails-stats.html?buildingId=${buildingId}`;
+    document.getElementById('searchLink').href = `mails-search.html?buildingId=${buildingId}`;
+  </script>
+</body>
+
+</html>

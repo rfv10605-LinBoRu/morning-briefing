@@ -1,0 +1,30 @@
+{
+  "id": "8e00b7f7-fba4-42bc-b1a7-02e0c942eb5e",
+  "displayId": "20260224-L390-001",
+  "building": "竹科大樓",
+  "type": "大樓設備故障",
+  "subtype": "電梯故障",
+  "description": "16:25  2號客梯故障關住一人\n16:26  通報Otis \n\n16:30  2號客梯 人員安全脫困\n\n主機板故障\n\n已報修電梯廠商，廠商初判主機板故障無法維修",
+  "reportedBy": "鄭華皓",
+  "location": "A棟11樓",
+  "occurTime": "2026-02-24T16:25",
+  "phenomenon": "16:25  2號客梯故障關住一人\n16:26  通報Otis \n\n16:30  2號客梯 人員安全脫困",
+  "judgement": "主機板故障",
+  "handling": "已報修電梯廠商，廠商初判主機板故障無法維修",
+  "suggestion": "",
+  "reason": "電梯關人",
+  "status": "resolved",
+  "createdAt": "2026-02-24T08:43:13.719Z",
+  "updatedAt": "2026-02-26T12:19:33.289Z",
+  "files": [
+    {
+      "filename": "1771922593980_31871.jpg",
+      "originalname": "31871.jpg",
+      "mimetype": "image/jpeg",
+      "size": 90697,
+      "uploadedAt": "2026-02-24T08:43:14.005Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260224-L390-001/files/1771922593980_31871.jpg"
+    }
+  ]
+}

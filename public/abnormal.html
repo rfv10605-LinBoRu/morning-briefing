@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>大樓異常報告</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .queryBox {
+      border: 2px solid #007bff;
+      padding: 16px;
+      border-radius: 8px;
+      background: #f8faff;
+      margin-top: 24px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    form label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 500;
+    }
+
+    form input,
+    form select,
+    form textarea {
+      margin-top: 6px;
+      padding: 8px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    form textarea {
+      resize: vertical;
+    }
+
+    form button {
+      grid-column: span 2;
+      padding: 10px 16px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #0056b3;
+    }
+
+    /* ✅ 手機版排版：改成一欄 */
+    @media (max-width: 768px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      form button {
+        grid-column: span 1;
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+  </div>
+  <h2>📋 建立大樓異常報告</h2>
+
+  <form id="abnormalForm">
+    <label>📍 選擇分區(必填)
+      <select id="zoneSelect">
+        <option value="" disabled selected hidden>請選擇</option>
+        <option value="台北北區">台北北區</option>
+        <option value="台北南區">台北南區</option>
+        <option value="醫療專區">醫療專區</option>
+        <option value="台灣中區">台灣中區</option>
+        <option value="台灣南區">台灣南區</option>
+      </select>
+    </label>
+
+    <label>🏢 回報大樓(必填)
+      <select id="reportBuilding">
+        <option value="">請選擇</option>
+      </select>
+    </label>
+
+    <label>⚠️ 主類型(必填)
+      <select id="mainType">
+        <option value="">請選擇</option>
+        <option value="大樓災害事件">大樓災害事件</option>
+        <option value="大樓設備故障">大樓設備故障</option>
+        <option value="意外事故">意外事故</option>
+        <option value="其他事件">其他事件</option>
+      </select>
+    </label>
+
+    <label>🧩 異常樣型(必填)
+      <select id="subType">
+        <option value="">請先選擇主類型</option>
+      </select>
+    </label>
+
+    <label>📌 異常事由(必填)
+      <input type="text" id="reason" placeholder="例如：主幹管堵塞異常報告" rows="3" />
+    </label>
+
+    <label>📍 發生地點(必填)
+      <input type="text" id="location" placeholder="例如：A棟地下室電梯口" />
+    </label>
+
+    <label>🕒 發生時間(必填)
+      <input type="datetime-local" id="occurTime" />
+    </label>
+
+    <label>📝 異常狀況說明(必填)
+      <textarea id="phenomenon" rows="6" placeholder="請簡述現場異常情況"></textarea>
+    </label>
+
+    <label>🔍 異常原因檢討
+      <textarea id="judgement" rows="2" placeholder="例如：已聯繫廠商疏通，處理完成"></textarea>
+    </label>
+
+    <label>🛠️ 異常改善措施說明
+      <textarea id="handling" rows="2" placeholder="例如：承租戶○○損壞或公區電梯損壞"></textarea>
+    </label>
+
+    <label>📌 其他說明
+      <textarea id="suggestion" rows="2" placeholder="例如：提醒住戶勿丟異物，安排定期檢查"></textarea>
+    </label>
+
+    <label>📸 異常照片（可多張）
+      <input type="file" id="photoInitial" multiple accept="image/*" />
+    </label>
+    <div id="previewInitial"></div>
+
+    <label>🛠️ 處理情況照片（可多張）
+      <input type="file" id="photoProcessing" multiple accept="image/*" />
+    </label>
+    <div id="previewProcessing"></div>
+
+    <label>✅ 災損說明照片（可多張）
+      <input type="file" id="photoResolved" multiple accept="image/*" />
+    </label>
+    <div id="previewResolved"></div>
+
+    <label>📂 處理完成照片（可多張）
+      <input type="file" id="photoInput" multiple accept="image/*" />
+    </label>
+    <div id="previewArea" style="margin-top:12px;"></div>
+
+    <label>👤 回報人姓名(必填)
+      <input type="text" id="reporter" placeholder="請輸入回報人姓名" />
+    </label>
+
+    <button id="createBtn">建立大樓異常報告</button>
+
+
+  </form>
+
+
+
+
+  <script>
+    // 送出表單
+    document.getElementById('abnormalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        displayId: document.getElementById('displayId').value,
+        building: document.getElementById('building').value,
+        type: document.getElementById('type').value,
+        status: document.getElementById('status').value
+      };
+
+      const res = await fetch('/api/create-abnormal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      alert(data.message);
+    });
+
+    // 上傳到後端：分三次送出或加上分類標籤
+    async function uploadPhotos(eventId, inputId, category) {
+      const input = document.getElementById(inputId);
+      const files = input.files;
+      if (files.length === 0) return;
+
+      const formData = new FormData();
+      for (const f of files) {
+        formData.append('files', f);
+      }
+      formData.append('category', category); // 傳送分類資訊
+
+      const resp = await fetch(`/api/abnormal-events/${eventId}/files`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+    }
+
+    // 通用函式來處理預覽
+    function setupPhotoPreview(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+
+      input.addEventListener('change', () => {
+        preview.innerHTML = '';
+        for (const file of input.files) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const img = document.createElement('img');
+            img.src = reader.result;
+            img.style.maxWidth = '120px';
+            img.style.margin = '6px';
+            img.style.borderRadius = '6px';
+            preview.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    setupPhotoPreview('photoInitial', 'previewInitial');
+    setupPhotoPreview('photoProcessing', 'previewProcessing');
+    setupPhotoPreview('photoResolved', 'previewResolved');
+
+    const buildingMap = {
+      '台北北區': ['亞太經貿'],
+      '台北南區': ['松山金融', '前瞻金融', '全球民權', '產物大樓', '芷英大樓', '華航大樓',
+        '南京科技', '互助營造', '摩天大樓', '新莊農會', '儒鴻企業', '新板傑仕堡',
+        '新板金融', '桃園金融', '新竹大樓', '竹科大樓', '頭份大樓', '新莊大樓', '中壢大樓', '亞洲廣場', '楊梅大樓'],
+      '醫療專區': ['新光醫院'],
+      '台灣中區': ['台中惠國'],
+      '台灣南區': ['台南大樓']
+    };
+
+    const subTypeMap = {
+      '大樓災害事件': ['地震', '火災', '颱風', '水災', '發現爆裂物', '大樓滲水或積水', '大樓遭受外力受損', '爆水管'],
+      '大樓設備故障': ['停空調', '大樓停水', '大樓停電', '污、廢、排水系統', '照明故障', '電梯故障', '鐵捲門故障', '外牆玻璃破損', '車場收費、管制系統', '電話系統', '瓦斯外洩'],
+      '意外事故': ['竊盜事件', '人員傷亡', '電梯關人', '外牆清洗意外事件', '人員特殊異常事件', '人員闖頂樓'],
+      '其他事件': ['警察至大樓辦案', '群眾抗爭', '媒體報導事件', '無預警無人辦公', '消防隊到大樓', '救護車到大樓', '勤務人員異常事件']
+    };
+
+    document.getElementById('zoneSelect').addEventListener('change', () => {
+      const zone = document.getElementById('zoneSelect').value;
+      const buildingSelect = document.getElementById('reportBuilding');
+      buildingSelect.innerHTML = '<option value="">請選擇</option>';
+
+      if (zone && buildingMap[zone]) {
+        for (const b of buildingMap[zone]) {
+          const opt = document.createElement('option');
+          opt.value = b;
+          opt.textContent = b;
+          buildingSelect.appendChild(opt);
+        }
+      }
+    });
+
+    document.getElementById('mainType').addEventListener('change', () => {
+      const main = document.getElementById('mainType').value;
+      const subSelect = document.getElementById('subType');
+      subSelect.innerHTML = '<option value="">請選擇</option>';
+
+      if (subTypeMap[main]) {
+        for (const sub of subTypeMap[main]) {
+          const opt = document.createElement('option');
+          opt.value = sub;
+          opt.textContent = sub;
+          subSelect.appendChild(opt);
+        }
+      }
+      subSelect.blur();    //新增
+      subSelect.focus();   //新增
+    });
+
+
+    // 修改排版後程式碼
+    document.getElementById('createBtn').addEventListener('click', async (e) => {
+      e.preventDefault(); // ✅ 阻止 <form> 預設提交行為
+
+      // 📥 取得所有欄位值
+      const building = document.getElementById('reportBuilding').value.trim();
+      const type = document.getElementById('mainType').value;
+      const subtype = document.getElementById('subType').value;
+      const locationText = document.getElementById('location').value.trim();
+      const reason = document.getElementById('reason').value.trim();  // ✅✅✅✅
+      const occurTime = document.getElementById('occurTime').value;
+      const phenomenon = document.getElementById('phenomenon').value.trim();
+      const judgement = document.getElementById('judgement').value.trim();
+      const handling = document.getElementById('handling').value.trim();
+      const suggestion = document.getElementById('suggestion').value.trim();
+      const reportedBy = document.getElementById('reporter').value.trim();
+
+
+      // 🧠 組合描述文字
+      const description = [phenomenon, judgement, handling, suggestion]
+        .filter(Boolean)
+        .join('\n\n'); // 每段空一行
+
+
+      // 🚫 檢查必填欄位
+      if (!building || !type || !subtype || !description || !reportedBy || !location || !occurTime || !reason) {
+        alert('❗ 請填寫完整資訊');
+        return;
+      }
+
+      try {
+        // 📤 建立事件
+        const resp = await fetch('/api/abnormal-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            building,
+            type,
+            subtype,
+            description,
+            reportedBy,
+            location: locationText, // ✅ 改成不衝突的名稱
+            occurTime,
+            phenomenon,
+            judgement,
+            handling,
+            suggestion,
+            reason  // ✅✅✅✅
+          })
+        });
+
+        if (!resp.ok) throw new Error(await resp.text());
+        const data = await resp.json();
+
+        // 📷 上傳分類照片（如有）
+        await uploadPhotos(data.displayId, 'photoInitial', 'initial');
+        await uploadPhotos(data.displayId, 'photoProcessing', 'processing');
+        await uploadPhotos(data.displayId, 'photoResolved', 'resolved');
+
+        // 📷 上傳一般照片（如有）
+        const photoInput = document.getElementById('photoInput');
+        const files = photoInput.files;
+        if (files.length > 0) {
+          const formData = new FormData();
+          for (const f of files) {
+            formData.append('files', f);
+          }
+          const uploadResp = await fetch(`/api/abnormal-events/${data.displayId}/files`, {
+            method: 'POST',
+            body: formData
+          });
+          if (!uploadResp.ok) throw new Error(await uploadResp.text());
+        }
+
+        alert(`✅ 建立成功，事件編號：${data.displayId}`);
+        location.reload();
+      } catch (err) {
+        console.error('❌ 建立事件錯誤:', err);
+        alert('❌ 建立事件錯誤：' + err.message);
+      }
+    });
+
+
+
+    // ✅ JavaScript：加入預覽與送出照片功能
+    document.getElementById('photoInput').addEventListener('change', () => {
+      const previewArea = document.getElementById('previewArea');
+      previewArea.innerHTML = '';
+      const files = photoInput.files;
+      for (const f of files) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = document.createElement('img');
+          img.src = reader.result;
+          img.style.maxWidth = '120px';
+          img.style.margin = '6px';
+          img.style.borderRadius = '6px';
+          previewArea.appendChild(img);
+        };
+        reader.readAsDataURL(f);
+      }
+    });
+
+
+    async function loadEvents() {
+      const building = document.getElementById('filterBuilding')?.value || '';
+      const type = document.getElementById('mainType')?.value || '';
+      const query = new URLSearchParams();
+      if (building) query.append('building', building);
+      if (type) query.append('type', type);
+
+      const eventTableBody = document.getElementById('eventTableBody');
+      eventTableBody.innerHTML = '';
+
+      try {
+        const resp = await fetch(`/api/abnormal-events?${query.toString()}`);
+        if (!resp.ok) throw new Error(await resp.text());
+        const events = await resp.json();
+
+        if (events.length === 0) {
+          eventTableBody.innerHTML = `<tr><td colspan="7">目前沒有大樓異常報告</td></tr>`;
+          return;
+        }
+
+        for (const e of events) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+        <td><a href="/abnormal-detail.html?id=${e.id}" target="_blank"><code>${e.displayId || e.id}</code></a></td>
+        <td>${e.building}</td>
+        <td>${e.type}</td>
+        <td>${e.subtype || ''}</td>
+        <td>${e.description}</td>
+        <td>${new Date(e.createdAt).toLocaleString()}</td>
+        <td>${e.status}</td>
+      `;
+          eventTableBody.appendChild(tr);
+        }
+      } catch (err) {
+        console.error(err);
+        eventTableBody.innerHTML = `<tr><td colspan="7">❌ 無法載入事件：${err.message}</td></tr>`;
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>

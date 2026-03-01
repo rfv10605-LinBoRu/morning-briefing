@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>會議簽到</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .meeting-info {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .meeting-info h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      color: #333;
+    }
+
+    .meeting-info p {
+      margin: 4px 0;
+      font-size: 15px;
+      color: #666;
+    }
+
+    input[type="text"] {
+      width: 95%;
+      /* ✅ 控制是否填滿容器寬度 */
+      padding: 12px;
+      /* ✅ 控制內部空間（上下左右） */
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      /* ✅ 控制文字大小，也影響高度 */
+
+    }
+
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      /* ✅ 控制是否填滿容器寬度 */
+      padding: 12px;
+      /* ✅ 控制內部空間（上下左右） */
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      /* ✅ 控制文字大小，也影響高度 */
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    .message {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* 手機版優化 */
+    @media(max-width:600px) {
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        margin: 15px;
+        padding: 15px;
+      }
+
+      .meeting-info h2 {
+        font-size: 18px;
+      }
+
+      input[type="text"] {
+        width: 92%;
+        font-size: 18px;
+        /* 增加文字大小，提升可點擊性 */
+        padding: 14px;
+        /* 增加內部空間，提升觸控體驗 */
+      }
+
+      button {
+        font-size: 18px;
+        /* 增加文字大小，提升可點擊性 */
+        padding: 14px;
+        /* 增加內部空間，提升觸控體驗 */
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📋 會議簽到</h1>
+  </header>
+
+  <div class="container">
+    <!-- 會議資訊 -->
+    <div class="meeting-info" id="meetingInfo">
+      <h2>載入中...</h2>
+      <p>📅 日期：--</p>
+      <p>📍 地點：--</p>
+    </div>
+
+    <!-- 簽到表單 -->
+    <input type="text" id="employeeId" placeholder="請輸入員工編號">
+    <button onclick="signin()">簽到</button>
+    <div class="message" id="message"></div>
+  </div>
+
+  <footer>
+    © 2025 會議簽到系統
+  </footer>
+
+  <script>
+    // 從 URL 取得 meetingId
+    const urlParams = new URLSearchParams(window.location.search);
+    const meetingId = urlParams.get('meetingId');
+
+    // 載入會議資訊
+    async function loadMeetingInfo() {
+      const res = await fetch(`/api/meetings/${meetingId}`);
+      const m = await res.json();
+      const info = document.getElementById('meetingInfo');
+      info.innerHTML = `
+        <h2>${m.name}</h2>
+        <p>📅 日期：${m.date}</p>
+        <p>📍 地點：${m.location}</p>
+      `;
+    }
+
+    // 簽到功能
+    async function signin() {
+      const employeeId = document.getElementById('employeeId').value.trim();
+      if (!employeeId) return alert("請輸入員工編號");
+
+      const resp = await fetch('/api/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetingId, employeeId })
+      });
+
+      const data = await resp.json();
+      const msg = document.getElementById('message');
+      if (resp.ok) {
+        msg.style.color = 'green';
+        msg.textContent = `✅ ${data.record.name} 已簽到成功 (${new Date(data.record.signedAt).toLocaleTimeString()})`;
+      } else {
+        msg.style.color = 'red';
+        msg.textContent = `❌ ${data.error}`;
+      }
+
+      document.getElementById('employeeId').value = '';
+    }
+
+    loadMeetingInfo();
+  </script>
+</body>
+
+</html>

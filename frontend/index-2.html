@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>物業管理系統首頁</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 280px;
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .card a {
+      display: block;
+      margin: 6px 0;
+      padding: 10px;
+      background: #0078D4;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    .card a:hover {
+      background: #005ea2;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🏢 物業管理系統首頁</h1>
+  </header>
+
+<div class="container">
+  <div class="card">
+    <h2>管理費項目建立</h2>
+    <a href="items.html">進入建立</a>
+  </div>
+
+  <div class="card">
+    <h2>新增大樓管理費</h2>
+    <a href="buildings.html">進入新增</a>
+  </div>
+
+  <div class="card">
+    <h2>大樓管理費清單</h2>
+    <a href="buildings-list.html">查看清單</a>
+  </div>
+
+  <div class="card">
+    <h2>大樓明細查詢</h2>
+    <a href="building-detail.html">查看明細</a>
+  </div>
+
+  <div class="card">
+    <h2>合約控管</h2>
+    <a href="contracts.html">進入管理</a>
+  </div>
+
+  <!-- ✅ 新增廠商管理卡片 -->
+  <div class="card">
+    <h2>廠商管理</h2>
+    <a href="vendors.html">進入管理</a>
+  </div>
+
+  <div class="card">
+    <h2>下載資料庫</h2>
+    <a href="/download-db/database.sqlite">下載 database.sqlite</a>
+  </div>
+
+</div>
+
+
+
+  <footer>
+    © 2025 物業管理系統
+  </footer>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!-- morning-briefing/frontend/items.html -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>管理費項目建立</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    pre {
+      background: #f0f2f5;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f2f5;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .delete-btn {
+      background: #d83b01;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      /* ✅ 改成和一般 button 一樣 */
+      border-radius: 6px;
+      /* ✅ 改成一致圓角 */
+      font-size: 16px;
+      /* ✅ 改成一致字體大小 */
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #a52600;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .edit-btn {
+      background: #0078D4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .edit-btn:hover {
+      background: #005ea2;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📑 管理費項目建立</h1>
+  </header>
+
+  <div class="container">
+    <p>請從 Excel 複製以下格式貼上：</p>
+    <pre>人件    主任    08:30-17:30 國定例假日休    月/次    50000
+工項    電梯設備保養    保養合約    月/次    96000</pre>
+
+    <textarea id="excelPaste" rows="10" placeholder="請貼上 Excel 表格內容"></textarea>
+    <button onclick="importItems()">匯入</button>
+    <button onclick="deduplicateItems()" style="margin-left: 10px; background: #d83b01;">
+      清除重複項目
+    </button>
+
+
+    <h2>已匯入清單 <span id="itemCount">(0 件)</span></h2>
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>類型</th>
+          <th>項目</th>
+          <th>項目備註</th>
+          <th>單位</th>
+          <th>單價</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <footer>
+    © 2025 物業管理系統
+  </footer>
+
+  <script src="js/items.js"></script>
+</body>
+
+</html>

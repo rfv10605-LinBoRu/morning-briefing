@@ -1,0 +1,22 @@
+[
+  { "username": "102050", "password": "102050133", "name": "系統員" },
+  { "username": "admin", "password": "1234", "name": "管理員" },
+  { "username": "skhb", "password": "0000", "name": "操作員" },
+  { "username": "user01", "password": "pass01", "name": "松山金融" },
+  { "username": "user02", "password": "pass02", "name": "前瞻金融" },
+  { "username": "user03", "password": "pass03", "name": "全球民權" },
+  { "username": "user04", "password": "pass04", "name": "產物大樓" },
+  { "username": "user05", "password": "pass05", "name": "芷英大樓" },
+  { "username": "user06", "password": "pass06", "name": "華航大樓" },
+  { "username": "user07", "password": "pass07", "name": "南京科技" },
+  { "username": "user08", "password": "pass08", "name": "互助營造" },
+  { "username": "user09", "password": "pass09", "name": "摩天大樓" },
+  { "username": "user10", "password": "pass10", "name": "新莊農會" },
+  { "username": "user11", "password": "pass11", "name": "儒鴻企業" },
+  { "username": "user12", "password": "pass12", "name": "新板傑仕堡" },
+  { "username": "user13", "password": "pass13", "name": "新板金融" },
+  { "username": "user14", "password": "pass14", "name": "桃園金融" },
+  { "username": "user15", "password": "pass15", "name": "新竹大樓" },
+  { "username": "user16", "password": "pass16", "name": "竹科大樓" },
+  { "username": "user17", "password": "pass17", "name": "頭份大樓" }
+]

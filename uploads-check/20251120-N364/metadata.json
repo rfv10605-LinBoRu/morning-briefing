@@ -1,0 +1,44 @@
+{
+  "displayId": "20251120-N364",
+  "zone": "台北南區",
+  "building": "N364",
+  "buildingName": "全球民權",
+  "date": "2025-11-20",
+  "inspector": "林泊儒",
+  "department": "區經理",
+  "createdAt": "2025-11-24T13:27:58.913Z",
+  "issues": [
+    {
+      "id": "issue-1",
+      "description": "6樓公區，燈罩脫落",
+      "photo": "1763990876601-goeivlaq81n.jpeg",
+      "improvePhoto": "issue-1-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-2",
+      "description": "地下2樓停車場防火鐵捲門開關掉落",
+      "photo": "1763990877084-5qiuytftq1x.jpeg",
+      "improvePhoto": "issue-2-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-3",
+      "description": "地下3樓停車場緊急出口燈線外露",
+      "photo": "1763990877596-8rcb7wd272q.jpeg",
+      "improvePhoto": "issue-3-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    },
+    {
+      "id": "issue-4",
+      "description": "地下3樓停車場盲蓋破損",
+      "photo": "1763990878693-jk09e22b3i.jpeg",
+      "improvePhoto": "issue-4-improve.jpg",
+      "improvement": "已改善",
+      "approved": true
+    }
+  ]
+}

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>查核報告詳情</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+      background: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      color: #007bff;
+    }
+
+    .meta {
+      margin-bottom: 24px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .meta p {
+      margin: 6px 0;
+    }
+
+    .issue-block {
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-top: 16px;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .photo-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      /* ✅ 手機時自動換行 */
+    }
+
+    .photo-col {
+      flex: 1;
+      text-align: center;
+      min-width: 140px;
+      /* ✅ 手機排版保底寬度 */
+    }
+
+    .photo-col img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      /* ✅ 固定比例 */
+      object-fit: cover;
+      /* ✅ 裁切填滿 */
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      /* ✅ 避免空白時突兀 */
+    }
+
+    textarea {
+      width: 100%;
+      margin-top: 8px;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+
+    select {
+      margin-top: 8px;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .approveBtn {
+      background: #28a745;
+      margin-left: 8px;
+    }
+
+    .back {
+      margin-top: 20px;
+      display: inline-block;
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    /* ✅ 手機版補強 */
+    @media (max-width: 600px) {
+      .photo-row {
+        flex-direction: column;
+      }
+
+      .photo-col img {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h2>📋 查核報告詳情</h2>
+  <div class="meta" id="metaBlock">載入中...</div>
+  <div id="issueList"></div>
+  <button onclick="submitImprovement()">📤 送出改善回報</button>
+  <a href="check-query.html" class="back">← 返回查詢頁</a>
+
+  <script>
+    let reportData = null;
+
+    async function loadDetail() {
+      const urlParams = new URLSearchParams(location.search);
+      const id = urlParams.get('id');
+      if (!id) return;
+
+      const resp = await fetch(`/uploads-check/${id}/metadata.json`);
+      if (!resp.ok) {
+        document.getElementById('metaBlock').innerHTML = '❌ 無法載入報告';
+        return;
+      }
+
+      reportData = await resp.json();
+      const metaBlock = document.getElementById('metaBlock');
+      metaBlock.innerHTML = `
+        <p><strong>案件編號：</strong> ${reportData.displayId}</p>
+        <p><strong>查核日期：</strong> ${reportData.date}</p>
+        <p><strong>區域：</strong> ${reportData.zone || ''}</p>
+        <p><strong>大樓：</strong> ${reportData.buildingName || reportData.building}</p>
+        <p><strong>部門：</strong> ${reportData.department || ''}</p>
+        <p><strong>查核人員：</strong> ${reportData.inspector}</p>
+        <p><strong>建立時間：</strong> ${new Date(reportData.createdAt).toLocaleString()}</p>
+      `;
+
+      const issueList = document.getElementById('issueList');
+      if (!reportData.issues?.length) {
+        issueList.innerHTML = '<p>✅ 無缺失紀錄</p>';
+        return;
+      }
+
+      for (const issue of reportData.issues) {
+        const div = document.createElement('div');
+        div.className = 'issue-block';
+        div.innerHTML = `
+          <p><strong>缺失：</strong> ${issue.description}</p>
+          <div class="photo-row">
+            <div class="photo-col">
+              <p>缺失照片</p>
+              ${issue.photo ? `<img src="/uploads-check/${reportData.displayId}/photos/${issue.photo}" alt="缺失照片">` : '<p>無照片</p>'}
+            </div>
+            <div class="photo-col">
+              <p>改善後照片</p>
+              <img src="${issue.improvePhoto ? `/uploads-check/${reportData.displayId}/photos/${issue.improvePhoto}` : ''}" alt="改善後照片" style="max-width:100%; border:1px solid #ddd; border-radius:4px;" />
+              <input type="file" class="improvePhoto" data-id="${issue.id}" accept="image/*" />
+              <button onclick="uploadImprovePhoto('${issue.id}')">⬆️ 上傳/覆蓋改善照片</button>
+            </div>
+          </div>
+          <label>改善說明</label>
+          <textarea class="improve" data-id="${issue.id}" placeholder="請填寫改善方式...">${issue.improvement || ''}</textarea>
+          <label>主管核定</label>
+          <select class="approveSelect" data-id="${issue.id}">
+            <option value="false" ${!issue.approved ? 'selected' : ''}>⚠️ 未核定</option>
+            <option value="true" ${issue.approved ? 'selected' : ''}>✅ 已核定</option>
+          </select>
+          <button class="approveBtn" onclick="confirmApproval('${issue.id}')">確認變更</button>
+        `;
+        issueList.appendChild(div);
+      }
+    }
+
+    // ✅ 改善回報（不用密碼）
+    async function submitImprovement() {
+      const improvements = {};
+      document.querySelectorAll('.improve').forEach(textarea => {
+        const id = textarea.dataset.id;
+        const text = textarea.value.trim();
+        if (text) improvements[id] = text;
+      });
+
+      if (!Object.keys(improvements).length) {
+        alert('請填寫至少一筆改善說明');
+        return;
+      }
+
+      const payload = {
+        displayId: reportData.displayId,
+        improvements
+      };
+
+      const resp = await fetch('/api/check-reports/improve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        alert('✅ 改善回報已送出');
+        loadDetail();
+      } else {
+        alert('❌ 回報失敗');
+      }
+    }
+
+    // ✅ 改善後照片預覽
+    document.addEventListener('change', e => {
+      if (e.target.classList.contains('improvePhoto')) {
+        const file = e.target.files[0];
+        const previewImg = e.target.closest('.photo-col').querySelector('img');
+        if (file && previewImg) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            previewImg.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    // ✅ 上傳改善後照片（覆蓋舊照片）
+    async function uploadImprovePhoto(issueId) {
+      const fileInput = document.querySelector(`.improvePhoto[data-id="${issueId}"]`);
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("請選擇一張照片");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('displayId', reportData.displayId);
+      formData.append('issueId', issueId);
+
+      const resp = await fetch('/api/check-reports/upload-improve-photo', {
+        method: 'POST',
+        body: formData
+      });
+
+      // ✅ 這裡替換成你提供的程式碼
+      if (resp.ok) {
+        const previewImg = document.querySelector(`.improvePhoto[data-id="${issueId}"]`)
+          .closest('.photo-col')
+          .querySelector('img');
+        if (previewImg) {
+          previewImg.src = `/uploads-check/${reportData.displayId}/photos/${issueId}-improve.jpg?${Date.now()}`;
+        }
+        alert("✅ 改善後照片已更新");
+      } else {
+        alert("❌ 照片上傳失敗");
+      }
+    }
+
+
+    // ✅ 主管核定（需要密碼）
+    async function confirmApproval(issueId) {
+      const password = prompt("請輸入主管密碼：");
+      if (password !== "2301") {
+        alert("❌ 密碼錯誤，無法變更");
+        return;
+      }
+
+      const select = document.querySelector(`.approveSelect[data-id="${issueId}"]`);
+      const approved = (select.value === "true");
+
+      const payload = {
+        displayId: reportData.displayId,
+        approvedIssues: { [issueId]: approved }
+      };
+
+      const resp = await fetch('/api/check-reports/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        alert(`✅ 缺失 ${issueId} 核定狀態已更新`);
+        loadDetail();
+      } else {
+        alert('❌ 核定失敗');
+      }
+    }
+
+    loadDetail();
+  </script>
+</body>
+
+</html>

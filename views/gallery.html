@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>勤前照片上傳預覽</title>
+  <style>
+    body {
+      font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2,
+    h3 {
+      color: #2c3e50;
+      margin-top: 20px;
+      border-left: 4px solid #007bff;
+      padding-left: 8px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .back-btn:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    .download-folder-btn {
+      background-color: #3498db;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .download-folder-btn:hover {
+      background-color: #217dbb;
+    }
+
+    .folder-block {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      padding: 12px;
+    }
+
+    .folder-header {
+      background: #f3f6fb;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .img-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .img-block {
+      width: 160px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 8px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .img-block:hover {
+      transform: scale(1.03);
+    }
+
+    .preview-img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .preview-img.zoom {
+      transform: translate(-50%, -50%) scale(3);
+      z-index: 999;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+      background: #fff;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+
+    .action-btn {
+      margin-top: 6px;
+      padding: 6px 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    /* ✅ 手機排版 (RWD) */
+    @media(max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+
+      h2,
+      h3 {
+        font-size: 18px;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .back-btn {
+        width: 100%;
+        text-align: center;
+        font-size: 16px;
+      }
+
+      .img-grid {
+        justify-content: center;
+      }
+
+      .img-block {
+        width: 45%;
+        /* 兩張並排 */
+      }
+
+      .preview-img.zoom {
+        transform: scale(2.2) translate(-50%, -50%);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <a id="backLink" class="back-btn" href="/">回到主畫面</a>
+    <a id="statsBtn" class="back-btn" style="background:#28a745; margin-left:8px;" href="/stats">勤前上傳統計</a>
+    <button id="downloadAllBtn" class="back-btn" style="background:#ff9800; margin-left:8px;">📦 一鍵下載當日全部照片</button>
+  </div>
+
+  <h2>勤前照片上傳預覽</h2>
+  <label for="date">選擇日期：</label>
+  <input type="date" id="date" onchange="filterByDate()">
+
+  <div id="galleryContainer"></div>
+
+  <script>
+    document.getElementById('downloadAllBtn').addEventListener('click', () => {
+      if (!date) return alert("⚠️ 請先選擇日期");
+      const link = document.createElement('a');
+      link.href = '/download-all?date=' + encodeURIComponent(date);
+      link.download = `photos-${date}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+
+    const params = new URLSearchParams(location.search);
+    const date = params.get('date');
+    const building = params.get('building') || '';
+    if (date) document.getElementById('date').value = date;
+
+    fetch(`/gallery-data?date=${date}&building=${building}`)
+      .then(res => res.json())
+      .then(data => renderGallery(data.folders || []));
+
+    function filterByDate() {
+      const date = document.getElementById('date').value;
+      let url = '/gallery?date=' + date;
+      if (building) url += '&building=' + encodeURIComponent(building);
+      window.location.href = url;
+    }
+
+    function renderGallery(folders) {
+      const container = document.getElementById('galleryContainer');
+      container.innerHTML = '';
+
+      if (!folders.length) {
+        container.innerHTML = `<p>尚未上傳 ${date} 的圖片</p>`;
+        return;
+      }
+
+      folders.forEach(({ folder, files }) => {
+        const section = document.createElement('div');
+        section.className = 'folder-block';
+
+        const header = document.createElement('div');
+        header.className = 'folder-header';
+        header.innerHTML = `
+          <h3>${folder}</h3>
+          <button class="download-folder-btn" onclick="downloadFolder('${folder}')">📦 下載整組 ${folder}</button>
+        `;
+        section.appendChild(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'img-grid';
+
+        files.forEach(({ filename, url }) => {
+          const block = document.createElement('div');
+          block.className = 'img-block';
+          block.innerHTML = `
+            <img src="${url}" class="preview-img">
+            <button class="action-btn delete-btn" onclick="deleteImage('${folder}', '${filename}')">刪除</button>
+          `;
+          grid.appendChild(block);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+
+      document.querySelectorAll(".preview-img").forEach(img => {
+        img.addEventListener("click", () => {
+          img.classList.toggle("zoom");
+        });
+      });
+    }
+
+    function deleteImage(folder, filename) {
+      const pwd = prompt('請輸入刪除密碼');
+      if (pwd !== '2301') return alert('❌ 密碼錯誤，無法刪除');
+      if (!confirm(`確定要刪除 ${filename} 嗎？`)) return;
+
+      fetch('/delete-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder, filename })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('✅ 刪除成功');
+            location.reload();
+          } else {
+            alert('❌ 刪除失敗：' + data.message);
+          }
+        })
+        .catch(err => {
+          alert('❌ 發生錯誤');
+          console.error(err);
+        });
+    }
+
+    function downloadFolder(folder) {
+      const link = document.createElement('a');
+      link.href = '/download-folder?folder=' + encodeURIComponent(folder);
+      link.download = folder + '.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+
+</html>

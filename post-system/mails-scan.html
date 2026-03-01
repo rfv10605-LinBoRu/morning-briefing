@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>掃描當日郵件</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }
+    header { text-align: center; margin-bottom: 20px; }
+    header h2 { color: #0078D4; margin: 0; }
+    section { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    h3 { margin-top: 0; color: #333; }
+    input, select { width: 100%; font-size: 16px; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    button { padding: 10px 16px; margin: 4px; font-size: 14px; cursor: pointer; border-radius: 6px; border: none; background: #0078D4; color: white; }
+    button:hover { background: #005ea2; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #eee; }
+    .delete-btn { background:#d9534f; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; }
+    .delete-btn:hover { background:#c9302c; }
+    /* 掃描成功動畫 */
+    .success-flash {
+      animation: flashGreen 0.6s;
+    }
+    @keyframes flashGreen {
+      0% { background-color: #d4edda; }
+      100% { background-color: white; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 id="pageTitle">📦 掃描當日郵件</h2>
+  </header>
+
+  <section>
+    <h3>➕ 掃描郵件</h3>
+    <select id="customerSelect">
+      <option value="">請選擇客戶</option>
+    </select>
+    <input id="mailInput" placeholder="郵件編號 (掃描或輸入)" pattern="[A-Za-z0-9]+">
+    <select id="carrier">
+      <option value="郵局">郵局</option>
+      <option value="黑貓">黑貓</option>
+      <option value="大榮">大榮</option>
+      <option value="其他">其他</option>
+    </select>
+    <button id="addToListBtn">加入清單</button>
+    <button id="submitAllBtn">新增郵件</button>
+    <ul id="mailList"></ul>
+  </section>
+
+  <section>
+    <h3 id="mailTitle">📋 當日郵件清單 (0 件)</h3>
+    <table id="mailTable">
+      <thead>
+        <tr>
+          <th>郵件編號</th>
+          <th>物流公司</th>
+          <th>客戶</th>
+          <th>掃描時間</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script type="module">
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+    document.getElementById('pageTitle').textContent = `📦 掃描當日郵件 - 大樓 ${buildingId}`;
+
+    let customerMap = {}; // taxId → { name, floor }
+    let mailQueue = [];
+
+    async function loadCustomers() {
+      const res = await fetch(`/api/buildings/${buildingId}/customers`);
+      const customers = await res.json();
+      const select = document.getElementById('customerSelect');
+      customers.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.taxId;
+        option.textContent = `${c.name}${c.taxId}(${c.floor})`;
+        select.appendChild(option);
+        customerMap[c.taxId] = { name: c.name, floor: c.floor };
+      });
+    }
+
+    function addToList() {
+      const mailInput = document.getElementById('mailInput');
+      const mailId = mailInput.value.trim();
+      const carrier = document.getElementById('carrier').value;
+      const customerTaxId = document.getElementById('customerSelect').value;
+
+      // 防呆：空值提示
+      if (!mailId || !customerTaxId) {
+        alert("⚠️ 請輸入郵件編號並選擇客戶");
+        return;
+      }
+
+      // 防呆：防重複掃描
+      if (mailQueue.some(m => m.mailId === mailId)) {
+        alert("⚠️ 此郵件編號已在清單中");
+        mailInput.value = '';
+        return;
+      }
+
+      // 加入清單
+      mailQueue.push({ mailId, carrier, customerTaxId });
+      renderMailQueue();
+
+      // 掃描成功動畫
+      mailInput.classList.add('success-flash');
+      setTimeout(() => mailInput.classList.remove('success-flash'), 600);
+
+      // 清空輸入框
+      mailInput.value = '';
+    }
+
+    document.getElementById('addToListBtn').addEventListener('click', addToList);
+    document.getElementById('mailInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addToList(); }
+    });
+    document.getElementById('mailInput').addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/[^A-Za-z0-9]/g, '');
+    });
+
+    function renderMailQueue() {
+      const ul = document.getElementById('mailList');
+      ul.innerHTML = '';
+      mailQueue.forEach((m, i) => {
+        const customerInfo = customerMap[m.customerTaxId];
+        const li = document.createElement('li');
+        li.textContent = `${m.mailId} - ${m.carrier} - ${customerInfo?.name || ''}`;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '❌';
+        delBtn.className = 'delete-btn';
+        delBtn.onclick = () => { mailQueue.splice(i, 1); renderMailQueue(); };
+        li.appendChild(delBtn);
+        ul.appendChild(li);
+      });
+    }
+
+    document.getElementById('submitAllBtn').addEventListener('click', async () => {
+      if (mailQueue.length === 0) return alert("⚠️ 尚未加入任何郵件");
+
+      for (const m of mailQueue) {
+        if (!m.mailId || !m.customerTaxId) {
+          alert("⚠️ 清單中有缺少客戶或郵件編號的資料");
+          return;
+        }
+        await fetch(`/api/buildings/${buildingId}/mails`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(m)
+        });
+      }
+
+      alert("✅ 所有郵件已新增");
+      mailQueue = [];
+      renderMailQueue();
+      loadMails();
+    });
+
+    async function loadMails() {
+      const res = await fetch(`/api/buildings/${buildingId}/mails?date=today`);
+      const mails = await res.json();
+      const tbody = document.querySelector('#mailTable tbody');
+      tbody.innerHTML = '';
+      mails.forEach(m => {
+        let formattedTime = '';
+        if (m.scannedAt) {
+          const dt = new Date(m.scannedAt);
+          formattedTime = dt.toLocaleString("zh-TW", {
+            timeZone: "Asia/Taipei",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+          }).replace(/\//g, "-").replace(",", "");
+        }
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${m.mailId}</td>
+          <td>${m.carrier}</td>
+          <td>
+
+            <div>${customerMap[m.customerTaxId]?.name || ''}</div>
+            <div style="color:#555;">${m.customerTaxId} (${customerMap[m.customerTaxId]?.floor || ''})</div>
+          </td>
+          <td>${formattedTime}</td>
+          <td><button class="delete-btn" onclick="deleteMail('${m.mailId}')">刪除</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+      document.getElementById('mailTitle').textContent = `📋 當日郵件清單 (${mails.length} 件)`;
+    }
+
+    // ✅ 刪除郵件
+    window.deleteMail = async function (mailId) {
+      if (!confirm(`確定要刪除郵件 ${mailId} 嗎？`)) return;
+      const resp = await fetch(`/api/buildings/${buildingId}/mails/${mailId}`, { method: 'DELETE' });
+      if (resp.ok) {
+        alert("🗑️ 郵件已刪除");
+        loadMails();
+      } else {
+        const data = await resp.json();
+        alert("❌ 刪除失敗：" + (data.error || "未知錯誤"));
+      }
+    };
+
+    loadCustomers();
+    loadMails();
+  </script>
+</body>
+
+</html>

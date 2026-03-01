@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>簽到名單總覽</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: #fdfdfd;
+    }
+
+    h2,
+    h3 {
+      color: #333;
+      margin-top: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      font-size: 16px;
+      background: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    /* ✅ 手機版也維持表格樣式，只微調字體大小 */
+    @media(max-width:600px) {
+      table {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h2>📊 會議簽到總覽</h2>
+
+  <h3 id="signedTitle">✅ 已簽到名單</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>員工編號</th>
+        <th>部門</th>
+        <th>姓名</th>
+        <th>職稱</th>
+        <th>簽到時間</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="signedTable"></tbody>
+  </table>
+
+  <h3 id="notSignedTitle">⏳ 未簽到名單</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>員工編號</th>
+        <th>部門</th>
+        <th>姓名</th>
+        <th>職稱</th>
+      </tr>
+    </thead>
+    <tbody id="notSignedTable"></tbody>
+  </table>
+
+  <button onclick="exportExcel()">匯出 Excel</button>
+
+  <script>
+    // 刪除簽到紀錄
+    async function deleteSignin(employeeId) {
+      if (!confirm(`確定要刪除員工 ${employeeId} 的簽到紀錄嗎？`)) return;
+      const resp = await fetch(`/api/signins/${meetingId}/${employeeId}`, { method: 'DELETE' });
+      const data = await resp.json();
+      if (resp.ok) {
+        alert("🗑️ 已刪除簽到紀錄");
+        loadTables();
+      } else {
+        alert("❌ 刪除失敗：" + (data.error || "未知錯誤"));
+      }
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const meetingId = urlParams.get('meetingId');
+
+    async function loadTables() {
+      const signedResp = await fetch(`/api/signins/${meetingId}`);
+      const signed = await signedResp.json();
+
+      // ✅ 依簽到時間排序：越早的排在越下面
+      signed.sort((a, b) => new Date(b.signedAt) - new Date(a.signedAt)); // 越早在下面
+
+      const signedTable = document.getElementById('signedTable');
+      signedTable.innerHTML = signed.map(r =>
+        `<tr>
+          <td>${r.employeeId}</td>
+          <td>${r.department || ''}</td>
+          <td>${r.name}</td>
+          <td>${r.title || ''}</td>
+          <td>${new Date(r.signedAt).toLocaleString()}</td>
+          <td>
+            <button style="background:#d9534f; color:white; border:none; padding:6px 12px; border-radius:4px;"
+              onclick="deleteSignin('${r.employeeId}')">刪除</button>
+          </td>
+        </tr>`
+      ).join('');
+      document.getElementById('signedTitle').textContent = `✅ 已簽到名單 (${signed.length} 位)`;
+
+      const notResp = await fetch(`/api/not-signed/${meetingId}`);
+      const notSigned = await notResp.json();
+      const notTable = document.getElementById('notSignedTable');
+      notTable.innerHTML = notSigned.map(r =>
+        `<tr>
+          <td>${r.employeeId || ''}</td>
+          <td>${r.department || ''}</td>
+          <td>${r.name}</td>
+          <td>${r.title || ''}</td>
+        </tr>`
+      ).join('');
+      document.getElementById('notSignedTitle').textContent = `⏳ 未簽到名單 (${notSigned.length} 位)`;
+    }
+
+    // 刪除簽到紀錄
+    async function exportExcel() {
+      window.location.href = `/api/export/${meetingId}`;
+    }
+
+    loadTables();
+  </script>
+</body>
+
+</html>

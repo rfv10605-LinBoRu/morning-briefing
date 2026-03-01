@@ -1,0 +1,44 @@
+{
+  "displayId": "20251210-N274",
+  "zone": "台北南區",
+  "building": "N274",
+  "buildingName": "新莊農會",
+  "date": "2025-12-10",
+  "inspector": "林泊儒",
+  "department": "區經理",
+  "createdAt": "2025-12-10T09:31:45.443Z",
+  "issues": [
+    {
+      "id": "issue-1",
+      "description": "高壓機房-修繕廢棄物",
+      "photo": "1765359103596-zclgmk01v9d.jpg",
+      "improvePhoto": "issue-1-improve.jpg",
+      "improvement": "整理清除",
+      "approved": true
+    },
+    {
+      "id": "issue-2",
+      "description": "頂樓-環境清理",
+      "photo": "1765359104006-jvhr0ixuuyl.jpg",
+      "improvePhoto": "issue-2-improve.jpg",
+      "improvement": "清理",
+      "approved": true
+    },
+    {
+      "id": "issue-3",
+      "description": "B3F回收場-環境整潔",
+      "photo": "1765359104927-edhems7rjfp.jpg",
+      "improvePhoto": "issue-3-improve.jpg",
+      "improvement": "清除",
+      "approved": true
+    },
+    {
+      "id": "issue-4",
+      "description": "B2F廁所-巡檢記錄",
+      "photo": "1765359105275-l8avasq89ap.jpg",
+      "improvePhoto": "issue-4-improve.jpg",
+      "improvement": "重新放置",
+      "approved": true
+    }
+  ]
+}

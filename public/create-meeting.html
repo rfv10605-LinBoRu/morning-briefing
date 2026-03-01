@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>建立會議</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: #f5f7fa;
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+      color: #0078D4;
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ea2;
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      input, button { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <h2>📝 建立會議</h2>
+  <form onsubmit="createMeeting(event)">
+    <label>會議名稱</label>
+    <input type="text" id="meetingName" required>
+
+    <label>會議日期</label>
+    <input type="date" id="meetingDate" required>
+
+    <label>會議地點</label>
+    <input type="text" id="meetingLocation" required>
+
+    <button type="submit">建立會議</button>
+  </form>
+
+  <script>
+    async function createMeeting(e) {
+      e.preventDefault();
+      const name = document.getElementById('meetingName').value;
+      const date = document.getElementById('meetingDate').value;
+      const location = document.getElementById('meetingLocation').value;
+
+      // 會議編號：日期 + 序號，例如 20251127-001
+      const today = date.replace(/-/g, '');
+      const resCount = await fetch(`/api/meetings/count/${today}`);
+      const countData = await resCount.json();
+      const seq = String(countData.count + 1).padStart(3, '0');
+      const meetingId = `${today}-${seq}`;
+
+      const resp = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: meetingId, name, date, location, attendees: [] }) // ✅ 直接傳空陣列
+      });
+
+      if (resp.ok) {
+        alert("✅ 會議建立成功！");
+        window.location.href = "meeting.html";
+      } else {
+        const data = await resp.json();
+        alert("❌ 建立失敗：" + (data.error || "未知錯誤"));
+      }
+    }
+  </script>
+</body>
+</html>

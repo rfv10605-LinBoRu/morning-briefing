@@ -1,0 +1,39 @@
+{
+  "id": "fd1b68ed-79cb-4925-a95e-0a027049c269",
+  "displayId": "20260126-L126-001",
+  "building": "摩天大樓",
+  "type": "其他事件",
+  "subtype": "警察至大樓辦案",
+  "description": "安全帽遺失警察調閱監視畫面\n\n翻拍",
+  "reportedBy": "郭昆霖",
+  "location": "物品遺失6-10",
+  "occurTime": "2026-01-24T17:00",
+  "phenomenon": "安全帽遺失警察調閱監視畫面",
+  "judgement": "",
+  "handling": "翻拍",
+  "suggestion": "",
+  "reason": "中控室調閱攝影畫面",
+  "status": "closed",
+  "createdAt": "2026-01-26T00:35:44.638Z",
+  "updatedAt": "2026-01-29T20:35:27.310Z",
+  "files": [
+    {
+      "filename": "1769387745235_91856.jpg",
+      "originalname": "91856.jpg",
+      "mimetype": "image/jpeg",
+      "size": 123387,
+      "uploadedAt": "2026-01-26T00:35:45.494Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260126-L126-001/files/1769387745235_91856.jpg"
+    },
+    {
+      "filename": "1769387745723_91858.jpg",
+      "originalname": "91858.jpg",
+      "mimetype": "image/jpeg",
+      "size": 98693,
+      "uploadedAt": "2026-01-26T00:35:45.886Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260126-L126-001/files/1769387745723_91858.jpg"
+    }
+  ]
+}

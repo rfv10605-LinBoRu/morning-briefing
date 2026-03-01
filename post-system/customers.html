@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>建立客戶資料</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h2 {
+      color: #0078D4;
+      margin: 0;
+    }
+
+    section {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background: #0078D4;
+      color: white;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    .delete-btn {
+      background: #d9534f;
+      /* Bootstrap danger 紅色 */
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #c9302c;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2 id="pageTitle">👤 建立客戶資料</h2>
+  </header>
+
+  <section>
+    <h3>➕ 新增客戶</h3>
+    <input id="floor" placeholder="樓層 (例如 17樓)">
+    <input id="taxId" placeholder="統編 (唯一識別)">
+    <input id="name" placeholder="抬頭 (公司名稱)">
+    <button id="addBtn">新增客戶</button>
+
+    <h4>📥 批次匯入 (Excel 複製貼上)</h4>
+    <textarea id="bulkInput" placeholder="請從 Excel 貼上，每列格式：樓層\統編\抬頭" rows="6" style="width:100%;"></textarea>
+    <button id="bulkBtn">批次匯入</button>
+
+  </section>
+
+  <section>
+    <h3 id="customerTitle">📋 客戶清單 (0 位)</h3>
+    <table id="customerTable">
+      <thead>
+        <tr>
+          <th>樓層</th>
+          <th>統編</th>
+          <th>抬頭</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script type="module">
+    // ✅ 批次匯入功能
+    async function bulkImport() {
+      const text = document.getElementById('bulkInput').value.trim();
+      if (!text) return alert("⚠️ 請先貼上 Excel 資料");
+
+      // Excel 貼上通常是 tab 分隔，每行一筆
+      const lines = text.split('\n');
+      let successCount = 0, failCount = 0;
+
+      for (const line of lines) {
+        const [floor, taxId, name] = line.split('\t').map(s => s.trim());
+        if (!floor || !taxId || !name) {
+          failCount++;
+          continue;
+        }
+
+        const resp = await fetch(`/api/buildings/${buildingId}/customers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ floor, taxId, name })
+        });
+
+        if (resp.ok) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      }
+
+      alert(`✅ 成功匯入 ${successCount} 筆，❌ 失敗 ${failCount} 筆`);
+      document.getElementById('bulkInput').value = '';
+      loadCustomers();
+    }
+
+    document.getElementById('bulkBtn').addEventListener('click', bulkImport);
+
+    // 取得 buildingId
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+
+    document.getElementById('pageTitle').textContent = `👤 建立客戶資料 - 大樓 ${buildingId}`;
+
+    let customers = [];
+
+    async function loadCustomers() {
+      const res = await fetch(`/api/buildings/${buildingId}/customers`);
+      customers = await res.json();
+      renderTable(customers);
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector('#customerTable tbody');
+      tbody.innerHTML = '';
+      for (const c of data) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+      <td>${c.floor}</td>
+      <td>${c.taxId}</td>
+      <td>${c.name}</td>
+      <td><button class="delete-btn" data-taxid="${c.taxId}">刪除</button></td>
+      
+    `;
+        tbody.appendChild(row);
+      }
+
+      // ✅ 綁定刪除事件
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const taxId = btn.getAttribute('data-taxid');
+          deleteCustomer(taxId);
+        });
+      });
+
+      document.getElementById('customerTitle').textContent = `📋 客戶清單 (${data.length} 位)`;
+    }
+
+
+    async function addCustomer() {
+      const floor = document.getElementById('floor').value.trim();
+      const taxId = document.getElementById('taxId').value.trim();
+      const name = document.getElementById('name').value.trim();
+
+      if (!floor || !taxId || !name) {
+        return alert("⚠️ 請完整填寫樓層、統編、抬頭");
+      }
+
+      const resp = await fetch(`/api/buildings/${buildingId}/customers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ floor, taxId, name })
+      });
+
+      if (resp.ok) {
+        alert("✅ 客戶已新增");
+        document.getElementById('floor').value = '';
+        document.getElementById('taxId').value = '';
+        document.getElementById('name').value = '';
+        loadCustomers();
+      } else {
+        const data = await resp.json();
+        if (data.error && data.error.includes("UNIQUE constraint failed")) {
+          alert("❌ 新增失敗：已存在相同統編的客戶資訊");
+        } else {
+          alert("❌ 新增失敗：" + (data.error || "未知錯誤"));
+        }
+      }
+    }
+
+    async function deleteCustomer(taxId) {
+      if (!confirm(`確定要刪除統編 ${taxId} 的客戶嗎？`)) return;
+      const resp = await fetch(`/api/buildings/${buildingId}/customers/${taxId}`, { method: 'DELETE' });
+      if (resp.ok) {
+        alert("🗑️ 已刪除客戶");
+        loadCustomers();
+      } else {
+        const data = await resp.json();
+        alert("❌ 刪除失敗：" + (data.error || "未知錯誤"));
+      }
+    }
+
+    document.getElementById('addBtn').addEventListener('click', addCustomer);
+
+    loadCustomers();
+  </script>
+</body>
+
+</html>

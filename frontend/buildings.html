@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>新增大樓管理費</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f2f5;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    .delete-btn {
+      background: #d83b01;
+    }
+
+    .delete-btn:hover {
+      background: #a52600;
+    }
+
+    .edit-btn {
+      background: #107c10;
+    }
+
+    .edit-btn:hover {
+      background: #0b5c0b;
+    }
+
+    #summary {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #0078D4;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* ✅ 搜尋框樣式 */
+    #itemSearch {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* ✅ 常用項目區塊樣式 */
+    #quickSelect {
+      margin: 10px 0;
+    }
+
+    #quickSelect button {
+      margin-right: 8px;
+      margin-bottom: 8px;
+      background: #107c10;
+    }
+
+    #quickSelect button:hover {
+      background: #0b5c0b;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      min-width: 140px;
+    }
+
+    /* 項目 */
+    th:nth-child(3),
+    td:nth-child(3) {
+      min-width: 180px;
+    }
+
+    /* 項目備註 */
+    th:nth-child(4),
+    td:nth-child(4) {
+      min-width: 100px;
+    }
+
+    /* 單位 */
+    th:nth-child(5),
+    td:nth-child(5) {
+      min-width: 100px;
+    }
+
+    /* 單價 */
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🏢 新增大樓管理費</h1>
+  </header>
+
+  <div class="container">
+    <div class="form-group">
+      <label for="buildingCode">大樓編號：</label>
+      <input type="text" id="buildingCode" placeholder="例如 L126">
+    </div>
+
+    <div class="form-group">
+      <label for="buildingName">大樓名稱：</label>
+      <input type="text" id="buildingName" placeholder="例如 摩天大樓">
+    </div>
+
+    <h2>選擇服務項目並輸入數量</h2>
+
+    <!-- ✅ 新增搜尋框 -->
+    <input type="text" id="itemSearch" placeholder="搜尋項目 (名稱或類型)">
+
+
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>類型</th>
+          <th>項目</th>
+          <th>項目備註</th>
+          <th>單位</th>
+          <th>單價</th>
+          <th>數量</th>
+          <th>大樓備註</th> <!-- ✅ 新增 -->
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button onclick="submitBuilding()">新增大樓</button>
+
+    <h2>已建立大樓清單</h2>
+    <table id="buildingsTable">
+      <thead>
+        <tr>
+          <th>編號</th>
+          <th>名稱</th>
+          <th>未稅未管銷</th>
+          <th>含稅含管銷</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="summary"></div>
+  </div>
+
+  <footer>
+    © 2025 物業管理系統
+  </footer>
+
+  <script src="js/buildings.js"></script>
+</body>
+
+
+</html>

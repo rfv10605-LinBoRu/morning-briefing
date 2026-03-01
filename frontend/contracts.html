@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>合約控管</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+    }
+
+    header {
+      background: #0078D4;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #0078D4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    #costInfo,
+    #result {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #0078D4;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f2f5;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .delete-btn {
+      background: #d83b01;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #a52600;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📄 合約控管</h1>
+  </header>
+
+  <div class="container">
+    <div class="form-group">
+      <label for="building">選擇大樓</label>
+      <select id="building"></select>
+    </div>
+
+    <div id="costInfo"></div>
+
+    <div class="form-group">
+      <label for="type">類型</label>
+      <select id="type" onchange="loadItemNames()">
+        <option value="">請選擇</option>
+        <option value="人件">人件</option>
+        <option value="工項">工項</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="itemName">名稱</label>
+      <select id="itemName"></select>
+    </div>
+
+    <div class="form-group">
+      <label for="vendor">選擇廠商</label>
+      <select id="vendor"></select>
+    </div>
+
+    <div class="form-group">
+      <label for="isOutsourced">是否外包</label>
+      <select id="isOutsourced">
+        <option value="true">外包</option>
+        <option value="false">自派</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="amount">下包金額</label>
+      <input type="number" id="amount" placeholder="例如 30000">
+    </div>
+
+    <div class="form-group">
+      <label for="startDate">起始日期</label>
+      <input type="date" id="startDate">
+    </div>
+
+    <div class="form-group">
+      <label for="endDate">結束日期</label>
+      <input type="date" id="endDate">
+    </div>
+
+    <button onclick="submitContract()">送出合約</button>
+    <div id="result"></div>
+
+    <h2>合約清單</h2>
+    <table id="contractsTable">
+      <thead>
+        <tr>
+          <th>大樓</th>
+          <th>類型</th>
+          <th>外包</th>
+          <th>廠商</th>
+          <th>金額</th>
+          <th>期間</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <footer>
+    © 2025 大樓管理系統
+  </footer>
+
+  <script src="js/contracts.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,30 @@
+{
+  "id": "be399abd-c39c-46d0-a94e-cdd1cc3645d5",
+  "displayId": "20260213-L390-001",
+  "building": "竹科大樓",
+  "type": "大樓設備故障",
+  "subtype": "電梯故障",
+  "description": "2號客梯於11樓無法開門，1名豪威女性員工受困約5分鐘\n\n電梯門感應不良\n\n已聯繫廠商處理，目前無法排除待廠商後續維修",
+  "reportedBy": "鄭華皓",
+  "location": "A棟11樓",
+  "occurTime": "2026-02-13T17:32",
+  "phenomenon": "2號客梯於11樓無法開門，1名豪威女性員工受困約5分鐘",
+  "judgement": "電梯門感應不良",
+  "handling": "已聯繫廠商處理，目前無法排除待廠商後續維修",
+  "suggestion": "",
+  "reason": "電梯關人",
+  "status": "processing",
+  "createdAt": "2026-02-13T02:02:25.753Z",
+  "updatedAt": "2026-02-13T02:27:21.463Z",
+  "files": [
+    {
+      "filename": "1770948146050_541158.jpg",
+      "originalname": "541158.jpg",
+      "mimetype": "image/jpeg",
+      "size": 132098,
+      "uploadedAt": "2026-02-13T02:02:26.128Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260213-L390-001/files/1770948146050_541158.jpg"
+    }
+  ]
+}

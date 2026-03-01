@@ -1,0 +1,48 @@
+{
+  "id": "6e7453a4-70cf-4d1f-b14a-8b19de83daad",
+  "displayId": "20251126-L126-002",
+  "building": "摩天大樓",
+  "type": "大樓設備故障",
+  "subtype": "電梯故障",
+  "description": "1.114.11.25上午11:44分，C2電梯運轉至21樓時發生異常，有一人受困其中。\n2.中控室接獲通報立即連絡崇友電梯人員前往救援。\n3.崇友人員立即前往途中，C2電梯車廂緩速上升至31樓後開門，人員於11:46分自行順利脫困。",
+  "reportedBy": "郭昆霖",
+  "location": "C2-21F",
+  "occurTime": "2025-11-25T11:44",
+  "phenomenon": "",
+  "judgement": "",
+  "handling": "1.114.11.25上午11:44分，C2電梯運轉至21樓時發生異常，有一人受困其中。\n2.中控室接獲通報立即連絡崇友電梯人員前往救援。\n3.崇友人員立即前往途中，C2電梯車廂緩速上升至31樓後開門，人員於11:46分自行順利脫困。",
+  "suggestion": "",
+  "reason": "C2電梯運轉異常",
+  "status": "closed",
+  "createdAt": "2025-11-26T03:24:36.931Z",
+  "updatedAt": "2025-11-26T03:25:18.593Z",
+  "files": [
+    {
+      "filename": "1764127477596_16A5D44C-B52E-41F8-B83F-35EC5A9110B9_0.jpg",
+      "originalname": "16A5D44C-B52E-41F8-B83F-35EC5A9110B9_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 2115415,
+      "uploadedAt": "2025-11-26T03:24:38.038Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20251126-L126-002/files/1764127477596_16A5D44C-B52E-41F8-B83F-35EC5A9110B9_0.jpg"
+    },
+    {
+      "filename": "1764127478742_26957136-AAD1-4098-933D-090E69F3241C_0.jpg",
+      "originalname": "26957136-AAD1-4098-933D-090E69F3241C_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 2209945,
+      "uploadedAt": "2025-11-26T03:24:39.137Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20251126-L126-002/files/1764127478742_26957136-AAD1-4098-933D-090E69F3241C_0.jpg"
+    },
+    {
+      "filename": "1764127479723_469929F5-E2DF-4D8C-8B3E-C4207DB15DFF_0.jpg",
+      "originalname": "469929F5-E2DF-4D8C-8B3E-C4207DB15DFF_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 1634675,
+      "uploadedAt": "2025-11-26T03:24:40.040Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20251126-L126-002/files/1764127479723_469929F5-E2DF-4D8C-8B3E-C4207DB15DFF_0.jpg"
+    }
+  ]
+}

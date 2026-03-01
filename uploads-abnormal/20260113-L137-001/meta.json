@@ -1,0 +1,165 @@
+{
+  "id": "d4a793be-548e-4718-9f5a-8df581efa648",
+  "displayId": "20260113-L137-001",
+  "building": "桃園金融",
+  "type": "大樓設備故障",
+  "subtype": "大樓停水",
+  "description": "桃園金融大樓異常通報：\n15:36 機電董明輝巡檢時，發現B棟揚水泵浦無動作\n15:42 確認為積熱電驛過載跳脫。復歸後進行測試\n15:45 經查B棟60HP揚水泵浦軸承冒火花\n15:47 泵浦額定電流為84A\n量測三相電流為 R:123.8A S:123.9A T:116.0 A\n若持續讓泵浦運轉可能造成危險\n\n泵浦設備軸承偏移摩擦，致使電流過高，造成積熱電驛跳脫\n\n桃園金融大樓異常追蹤：\n19:26 廠商恭鼎抵達大樓，由陳副組長會同現勘，確認現場情形\n19:30 將電磁接觸器負載測接上備用泵浦，已供正常使用\n20:40 廠商安裝後，測試泵浦運轉情形，以及相關數值量測\nR相：38.38A\nS相：37.61A\nT相：37.51A\n20:46 廠商完成後先行離開\n20:47 陳副組長確認後續補水情形，目前一切順利",
+  "reportedBy": "林柏安",
+  "location": "B3F揚水機房",
+  "occurTime": "2026-01-13T15:36",
+  "phenomenon": "桃園金融大樓異常通報：\n15:36 機電董明輝巡檢時，發現B棟揚水泵浦無動作\n15:42 確認為積熱電驛過載跳脫。復歸後進行測試\n15:45 經查B棟60HP揚水泵浦軸承冒火花\n15:47 泵浦額定電流為84A\n量測三相電流為 R:123.8A S:123.9A T:116.0 A\n若持續讓泵浦運轉可能造成危險",
+  "judgement": "泵浦設備軸承偏移摩擦，致使電流過高，造成積熱電驛跳脫",
+  "handling": "桃園金融大樓異常追蹤：\n19:26 廠商恭鼎抵達大樓，由陳副組長會同現勘，確認現場情形\n19:30 將電磁接觸器負載測接上備用泵浦，已供正常使用\n20:40 廠商安裝後，測試泵浦運轉情形，以及相關數值量測\nR相：38.38A\nS相：37.61A\nT相：37.51A\n20:46 廠商完成後先行離開\n20:47 陳副組長確認後續補水情形，目前一切順利",
+  "suggestion": "",
+  "reason": "B棟揚水泵浦故障異常通報",
+  "status": "closed",
+  "createdAt": "2026-01-13T13:15:24.414Z",
+  "updatedAt": "2026-02-03T05:44:02.633Z",
+  "files": [
+    {
+      "filename": "1768310124748_IMG_9645.jpeg",
+      "originalname": "IMG_9645.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 266253,
+      "uploadedAt": "2026-01-13T13:15:25.471Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310124748_IMG_9645.jpeg"
+    },
+    {
+      "filename": "1768310125176_IMG_9646.jpeg",
+      "originalname": "IMG_9646.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 234566,
+      "uploadedAt": "2026-01-13T13:15:25.471Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310125176_IMG_9646.jpeg"
+    },
+    {
+      "filename": "1768310125321_IMG_9647.jpeg",
+      "originalname": "IMG_9647.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 279030,
+      "uploadedAt": "2026-01-13T13:15:25.471Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310125321_IMG_9647.jpeg"
+    },
+    {
+      "filename": "1768310125421_IMG_9649.jpeg",
+      "originalname": "IMG_9649.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 219637,
+      "uploadedAt": "2026-01-13T13:15:25.471Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310125421_IMG_9649.jpeg"
+    },
+    {
+      "filename": "1768310126558_IMG_9723.jpeg",
+      "originalname": "IMG_9723.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 637080,
+      "uploadedAt": "2026-01-13T13:15:27.522Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310126558_IMG_9723.jpeg"
+    },
+    {
+      "filename": "1768310126627_IMG_9713.jpeg",
+      "originalname": "IMG_9713.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 866820,
+      "uploadedAt": "2026-01-13T13:15:27.522Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310126627_IMG_9713.jpeg"
+    },
+    {
+      "filename": "1768310126883_IMG_9718.jpeg",
+      "originalname": "IMG_9718.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 1089975,
+      "uploadedAt": "2026-01-13T13:15:27.522Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310126883_IMG_9718.jpeg"
+    },
+    {
+      "filename": "1768310127048_IMG_9725.jpeg",
+      "originalname": "IMG_9725.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 870048,
+      "uploadedAt": "2026-01-13T13:15:27.522Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310127048_IMG_9725.jpeg"
+    },
+    {
+      "filename": "1768310127188_IMG_9726.jpeg",
+      "originalname": "IMG_9726.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 1094119,
+      "uploadedAt": "2026-01-13T13:15:27.522Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310127188_IMG_9726.jpeg"
+    },
+    {
+      "filename": "1768310127355_IMG_9727.jpeg",
+      "originalname": "IMG_9727.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 1189185,
+      "uploadedAt": "2026-01-13T13:15:27.522Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310127355_IMG_9727.jpeg"
+    },
+    {
+      "filename": "1768310128533_IMG_9729.jpeg",
+      "originalname": "IMG_9729.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 762452,
+      "uploadedAt": "2026-01-13T13:15:29.184Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310128533_IMG_9729.jpeg"
+    },
+    {
+      "filename": "1768310128574_IMG_9731.jpeg",
+      "originalname": "IMG_9731.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 882241,
+      "uploadedAt": "2026-01-13T13:15:29.184Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310128574_IMG_9731.jpeg"
+    },
+    {
+      "filename": "1768310128715_IMG_9732.jpeg",
+      "originalname": "IMG_9732.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 991774,
+      "uploadedAt": "2026-01-13T13:15:29.184Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310128715_IMG_9732.jpeg"
+    },
+    {
+      "filename": "1768310128870_IMG_9709.jpeg",
+      "originalname": "IMG_9709.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 703715,
+      "uploadedAt": "2026-01-13T13:15:29.184Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310128870_IMG_9709.jpeg"
+    },
+    {
+      "filename": "1768310129012_IMG_9710.jpeg",
+      "originalname": "IMG_9710.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 683117,
+      "uploadedAt": "2026-01-13T13:15:29.184Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310129012_IMG_9710.jpeg"
+    },
+    {
+      "filename": "1768310129051_IMG_9711.jpeg",
+      "originalname": "IMG_9711.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 656257,
+      "uploadedAt": "2026-01-13T13:15:29.184Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260113-L137-001/files/1768310129051_IMG_9711.jpeg"
+    }
+  ]
+}

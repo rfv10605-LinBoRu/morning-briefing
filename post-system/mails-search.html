@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <title>郵件查詢與篩選</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h2 {
+      color: #0078D4;
+      margin: 0;
+    }
+
+    section {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    input,
+    select {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background: #0078D4;
+      color: white;
+    }
+
+    button:hover {
+      background: #005ea2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    .delete-btn {
+      background: #d9534f;
+      /* 紅色背景 (Bootstrap danger 色系) */
+      color: #fff;
+      /* 白色文字 */
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #c9302c;
+      /* 滑鼠移上去更深的紅色 */
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2 id="pageTitle">📑 郵件查詢與篩選</h2>
+  </header>
+
+  <section>
+    <h3>🔍 搜尋條件</h3>
+    <!-- 客戶選單 (精確篩選) -->
+    <select id="customerSelect">
+      <option value="">請選擇客戶</option>
+    </select>
+
+    <!-- 客戶名稱輸入框 (模糊搜尋) -->
+    <input id="customerNameInput" placeholder="客戶名稱 (可輸入部分字串)">
+
+    <!-- 郵件編號輸入框 -->
+    <input id="mailIdInput" placeholder="郵件編號 (可輸入部分字串)">
+
+    <!-- 日期選擇器 -->
+    <input id="dateInput" type="date">
+
+    <button id="searchBtn">查詢</button>
+  </section>
+
+
+  <section>
+    <h3 id="resultTitle">📋 查詢結果 (0 件)</h3>
+    <table id="resultTable">
+      <thead>
+        <tr>
+          <th>郵件編號</th>
+          <th>物流公司</th>
+          <th>客戶</th>
+          <th>簽收時間</th>
+          <th>簽名檢查</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+
+  <script type="module">
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+    document.getElementById('pageTitle').textContent = `📑 郵件查詢與篩選 - 大樓 ${buildingId}`;
+
+    let customerMap = {};
+
+    async function loadCustomers() {
+      const res = await fetch(`/api/buildings/${buildingId}/customers`);
+      const customers = await res.json();
+      const select = document.getElementById('customerSelect');
+      customers.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.taxId;
+        option.textContent = `${c.name}${c.taxId}(${c.floor})`;
+        select.appendChild(option);
+        customerMap[c.taxId] = { name: c.name, floor: c.floor };
+      });
+    }
+
+    async function searchMails() {
+      const mailId = document.getElementById('mailIdInput').value.trim();
+      const customerTaxId = document.getElementById('customerSelect').value;
+      const customerName = document.getElementById('customerNameInput').value.trim();
+      const date = document.getElementById('dateInput').value;
+
+      let query = `/api/buildings/${buildingId}/mails/search?`;
+      if (mailId) query += `mailId=${encodeURIComponent(mailId)}&`;
+      if (customerTaxId) query += `customerTaxId=${encodeURIComponent(customerTaxId)}&`;
+      if (customerName) query += `customerName=${encodeURIComponent(customerName)}&`;
+      if (date) query += `date=${encodeURIComponent(date)}&`;
+
+      const res = await fetch(query);
+      const mails = await res.json();
+
+      const tbody = document.querySelector('#resultTable tbody');
+      tbody.innerHTML = '';
+      mails.forEach(m => {
+        // 簽收時間格式化
+        let signedTime = m.signedAt ? new Date(m.signedAt).toLocaleString("zh-TW", {
+          timeZone: "Asia/Taipei",
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hour12: false
+        }).replace(/\//g, "-").replace(",", "") : "尚未簽收";
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+      <td>${m.mailId}</td>
+      <td>${m.carrier}</td>
+      <td>
+        <div>${customerMap[m.customerTaxId]?.name || ''}</div>
+        <div style="color:#555;">${m.customerTaxId} (${customerMap[m.customerTaxId]?.floor || ''})</div>
+      </td>
+      <td>${signedTime}</td>
+      <td>${m.signatureImage ? `<img src="${m.signatureImage}" alt="簽名" style="max-height:50px;">` : "無簽名"}</td>
+      <td><button class="delete-btn" data-mailid="${m.mailId}">刪除</button></td>
+    `;
+        tbody.appendChild(row);
+      });
+
+      // 綁定刪除按鈕
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const mailId = btn.getAttribute('data-mailid');
+          if (confirm(`確定要刪除郵件 ${mailId} 嗎？`)) {
+            const resp = await fetch(`/api/buildings/${buildingId}/mails/${mailId}`, { method: 'DELETE' });
+            if (resp.ok) {
+              alert("✅ 郵件已刪除");
+              searchMails(); // 重新查詢更新清單
+            } else {
+              const data = await resp.json();
+              alert("❌ 刪除失敗：" + (data.error || "未知錯誤"));
+            }
+          }
+        });
+      });
+
+      document.getElementById('resultTitle').textContent = `📋 查詢結果 (${mails.length} 件)`;
+    }
+
+
+
+    document.getElementById('searchBtn').addEventListener('click', searchMails);
+
+    loadCustomers();
+  </script>
+</body>
+
+</html>

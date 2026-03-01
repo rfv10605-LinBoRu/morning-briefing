@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>郵件統計報表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h2 {
+      color: #0078D4;
+      margin: 0;
+    }
+    section {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h3 { margin-top: 0; color: #333; }
+    canvas {
+      width: 100% !important;
+      max-width: 600px;
+      height: 300px;
+      margin: 20px auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 id="pageTitle">📊 郵件統計報表</h2>
+  </header>
+
+  <section>
+    <h3>📅 每日郵件數量</h3>
+    <canvas id="dailyChart"></canvas>
+  </section>
+
+  <section>
+    <h3>📆 每月郵件數量</h3>
+    <canvas id="monthlyChart"></canvas>
+  </section>
+
+  <!-- 引入 Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    const urlParams = new URLSearchParams(window.location.search);
+    const buildingId = urlParams.get('buildingId');
+    document.getElementById('pageTitle').textContent = `📊 郵件統計報表 - 大樓 ${buildingId}`;
+
+    async function loadStats() {
+      // 從後端取得每日統計
+      const dailyRes = await fetch(`/api/buildings/${buildingId}/mails/stats?range=daily`);
+      const dailyStats = await dailyRes.json();
+
+      // 從後端取得每月統計
+      const monthlyRes = await fetch(`/api/buildings/${buildingId}/mails/stats?range=monthly`);
+      const monthlyStats = await monthlyRes.json();
+
+      renderDailyChart(dailyStats);
+      renderMonthlyChart(monthlyStats);
+    }
+
+    function renderDailyChart(data) {
+      const ctx = document.getElementById('dailyChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.date), // 假設後端回傳 {date: "2025/11/29", count: 12}
+          datasets: [{
+            label: '每日郵件數量',
+            data: data.map(d => d.count),
+            borderColor: '#0078D4',
+            backgroundColor: 'rgba(0,120,212,0.2)',
+            fill: true
+          }]
+        }
+      });
+    }
+
+    function renderMonthlyChart(data) {
+      const ctx = document.getElementById('monthlyChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.month), // 假設後端回傳 {month: "2025/11", count: 320}
+          datasets: [{
+            label: '每月郵件數量',
+            data: data.map(d => d.count),
+            backgroundColor: '#0078D4'
+          }]
+        }
+      });
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

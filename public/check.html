@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>建立大樓查核報告</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: #f4f6f9;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .issue-block {
+      border: 1px solid #ddd;
+      padding: 16px;
+      margin-top: 20px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .preview {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .preview img {
+      max-width: 50%;
+      /* ✅ 縮小到原本的 50% */
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    .btn-secondary {
+      background: #007bff;
+    }
+
+    .btn-secondary:hover {
+      background: #0069d9;
+    }
+
+    /* ✅ 手機排版 */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      input,
+      textarea,
+      select {
+        font-size: 13px;
+        padding: 8px;
+      }
+
+      button {
+        width: 100%;
+        font-size: 14px;
+      }
+
+      .preview img {
+        max-width: 80%;
+        /* 手機上稍微放大一點 */
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="controls">
+    <a class="back-btn" href="/">回到主畫面</a>
+  </div>
+  <h2>📋 建立大樓查核報告</h2>
+
+  <label>查核日期</label>
+  <input type="date" id="checkDate" required />
+
+  <label>📍 選擇區域</label>
+  <select id="zoneSelect" required>
+    <option value="">請選擇區域</option>
+    <option value="台北北區">台北北區</option>
+    <option value="台北南區">台北南區</option>
+    <option value="醫療專區">醫療專區</option>
+    <option value="台灣中區">台灣中區</option>
+    <option value="台灣南區">台灣南區</option>
+  </select>
+
+  <label>🏢 選擇大樓</label>
+  <select id="buildingSelect" required>
+    <option value="">請先選擇區域</option>
+  </select>
+
+  <label>查核部門</label>
+  <select id="departmentSelect" required>
+    <option value="">請選擇部門</option>
+    <option value="區經理">區經理</option>
+    <option value="稽核室">稽核室</option>
+    <option value="物管部">物管部</option>
+  </select>
+
+  <label>查核人員</label>
+  <input type="text" id="inspector" placeholder="長官姓名" required />
+
+  <div id="issueList"></div>
+  <button type="button" onclick="addIssue()">➕ 新增缺失</button>
+
+  <button onclick="submitReport()">📤 送出查核報告</button>
+
+  <script>
+    // 區域與大樓對照表（名稱 + 代號）
+    const buildingMap = {
+      '台北北區': [
+        { name: '亞太經貿', code: 'L289' }
+      ],
+      '台北南區': [
+        { name: '松山金融', code: 'L391' },
+        { name: '前瞻金融', code: 'L336' },
+        { name: '全球民權', code: 'N364' },
+        { name: '產物大樓', code: 'L217' },
+        { name: '芷英大樓', code: 'N307' },
+        { name: '華航大樓', code: 'N236' },
+        { name: '南京科技', code: 'L169' },
+        { name: '互助營造', code: 'N113' },
+        { name: '摩天大樓', code: 'L126' },
+        { name: '亞洲廣場', code: 'L366' },
+        { name: '新莊農會', code: 'N274' },
+        { name: '儒鴻企業', code: 'N393' },
+        { name: '新板傑仕堡', code: 'L384' },
+        { name: '新板金融', code: 'L371' },
+        { name: '桃園金融', code: 'L137' },
+        { name: '自強大樓', code: 'L171' },
+        { name: '中壢大樓', code: 'L175' },
+        { name: '楊梅大樓', code: 'L131' },
+        { name: '新竹大樓', code: 'L215' },
+        { name: '竹科大樓', code: 'L390' },
+        { name: '頭份大樓', code: 'L367' }
+      ],
+      '醫療專區': [
+        { name: '新光醫院', code: 'R125' }
+      ],
+      '台灣中區': [
+        { name: '台中惠國', code: 'L243' }
+      ],
+      '台灣南區': [
+        { name: '台南大樓', code: 'L186' }
+      ]
+    };
+
+    // 當選擇區域時更新大樓選單
+    document.getElementById('zoneSelect').addEventListener('change', () => {
+      const zone = document.getElementById('zoneSelect').value;
+      const buildingSelect = document.getElementById('buildingSelect');
+      buildingSelect.innerHTML = '<option value="">請選擇大樓</option>';
+
+      if (buildingMap[zone]) {
+        for (const b of buildingMap[zone]) {
+          const opt = document.createElement('option');
+          opt.value = b.code; // ✅ value 用代號
+          opt.textContent = b.name; // ✅ 顯示名稱
+          buildingSelect.appendChild(opt);
+        }
+      }
+    });
+
+    function addIssue() {
+      const container = document.createElement('div');
+      container.className = 'issue-block';
+      container.innerHTML = `
+        <label>缺失敘述</label>
+        <textarea class="desc" rows="3" placeholder="請輸入缺失內容"></textarea>
+        <label>現場照片</label>
+        <input type="file" class="photo" accept="image/*" />
+        <div class="preview"></div>
+      `;
+      document.getElementById('issueList').appendChild(container);
+
+      // ✅ 照片預覽功能
+      const photoInput = container.querySelector('.photo');
+      const previewDiv = container.querySelector('.preview');
+      photoInput.addEventListener('change', () => {
+        previewDiv.innerHTML = '';
+        const file = photoInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            previewDiv.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    async function submitReport() {
+      const date = document.getElementById('checkDate').value;
+      const buildingCode = document.getElementById('buildingSelect').value.trim();
+      const inspector = document.getElementById('inspector').value.trim();
+      const department = document.getElementById('departmentSelect').value;
+      const zone = document.getElementById('zoneSelect').value;
+      const buildingName = document.getElementById('buildingSelect').options[document.getElementById('buildingSelect').selectedIndex].text;
+
+      const displayId = `${date.replace(/-/g, '')}-${buildingCode}`;
+
+      const issueBlocks = document.querySelectorAll('.issue-block');
+      const issues = [];
+
+      for (const block of issueBlocks) {
+        const desc = block.querySelector('.desc').value.trim();
+        const photoInput = block.querySelector('.photo');
+        const photoFile = photoInput.files[0];
+
+        if (!desc) continue;
+
+        const issue = { description: desc };
+        if (photoFile) {
+          const formData = new FormData();
+          formData.append('file', photoFile);
+          formData.append('displayId', displayId);
+          const uploadResp = await fetch('/api/upload-photo', {
+            method: 'POST',
+            body: formData
+          });
+          const { filename } = await uploadResp.json();
+          issue.photo = filename;
+        }
+
+        issues.push(issue);
+      }
+
+      const payload = {
+        displayId,
+        zone,
+        building: buildingCode,
+        buildingName,
+        date,
+        inspector,
+        department,
+        issues
+      };
+
+      const resp = await fetch('/api/check-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        alert('✅ 查核報告已建立');
+        location.reload();
+      } else {
+        alert('❌ 建立失敗');
+      }
+    }
+    // 預設新增一個缺失區塊
+    addIssue();
+  </script>
+</body>
+
+</html>

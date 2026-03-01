@@ -1,0 +1,48 @@
+{
+  "id": "969a1213-1ab2-47b7-abb4-5e5e29c34993",
+  "displayId": "20260226-L390-001",
+  "building": "竹科大樓",
+  "type": "大樓災害事件",
+  "subtype": "大樓遭受外力受損",
+  "description": "聯發科七樓黃主任\n3點58分通知\na棟7樓大廳3號和四號中間電梯玻璃帷幕破裂\n\n目前通報電梯廠商\n\n已聯繫電梯廠商檢查",
+  "reportedBy": "鄭華皓",
+  "location": "7樓電梯玻璃帷幕",
+  "occurTime": "2026-02-26T15:58",
+  "phenomenon": "聯發科七樓黃主任\n3點58分通知\na棟7樓大廳3號和四號中間電梯玻璃帷幕破裂\n\n目前通報電梯廠商",
+  "judgement": "",
+  "handling": "已聯繫電梯廠商檢查",
+  "suggestion": "",
+  "reason": "7樓電梯玻璃帷幕破損",
+  "status": "processing",
+  "createdAt": "2026-02-26T09:22:29.010Z",
+  "updatedAt": "2026-02-26T12:19:47.091Z",
+  "files": [
+    {
+      "filename": "1772097749341_543737_0.jpg",
+      "originalname": "543737_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 138235,
+      "uploadedAt": "2026-02-26T09:22:29.467Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260226-L390-001/files/1772097749341_543737_0.jpg"
+    },
+    {
+      "filename": "1772097749364_543738_0.jpg",
+      "originalname": "543738_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 175588,
+      "uploadedAt": "2026-02-26T09:22:29.467Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260226-L390-001/files/1772097749364_543738_0.jpg"
+    },
+    {
+      "filename": "1772097749456_543739_0.jpg",
+      "originalname": "543739_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 127839,
+      "uploadedAt": "2026-02-26T09:22:29.467Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260226-L390-001/files/1772097749456_543739_0.jpg"
+    }
+  ]
+}

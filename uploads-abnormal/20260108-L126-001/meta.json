@@ -1,0 +1,48 @@
+{
+  "id": "3eb4cfb6-1f91-4b67-8cca-685b2f8b9c59",
+  "displayId": "20260108-L126-001",
+  "building": "摩天大樓",
+  "type": "大樓設備故障",
+  "subtype": "電梯故障",
+  "description": "貨梯於45樓發生異常，有三名人員受困其中。\n中控室接獲通報立即連絡崇友電梯人員前往救援。於08:32分將電梯門開啟，人員脫困。\n貨梯經崇友人員檢修後，查明造成異常原因為調速機連軸器故障，更新後恢復正常，測試後開放正常運作\n\n調速機連軸器故障\n\n更換新品\n\n定期安排檢查",
+  "reportedBy": "郭昆霖",
+  "location": "貨梯45F",
+  "occurTime": "2026-01-08T07:45",
+  "phenomenon": "貨梯於45樓發生異常，有三名人員受困其中。\n中控室接獲通報立即連絡崇友電梯人員前往救援。於08:32分將電梯門開啟，人員脫困。\n貨梯經崇友人員檢修後，查明造成異常原因為調速機連軸器故障，更新後恢復正常，測試後開放正常運作",
+  "judgement": "調速機連軸器故障",
+  "handling": "更換新品",
+  "suggestion": "定期安排檢查",
+  "reason": "貨梯關人事件",
+  "status": "closed",
+  "createdAt": "2026-01-08T03:37:19.138Z",
+  "updatedAt": "2026-01-13T01:59:24.570Z",
+  "files": [
+    {
+      "filename": "1767843439399_1767843370908.jpg",
+      "originalname": "1767843370908.jpg",
+      "mimetype": "image/jpeg",
+      "size": 126205,
+      "uploadedAt": "2026-01-08T03:37:19.679Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260108-L126-001/files/1767843439399_1767843370908.jpg"
+    },
+    {
+      "filename": "1767843439941_1767843378292.jpg",
+      "originalname": "1767843378292.jpg",
+      "mimetype": "image/jpeg",
+      "size": 124578,
+      "uploadedAt": "2026-01-08T03:37:20.129Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260108-L126-001/files/1767843439941_1767843378292.jpg"
+    },
+    {
+      "filename": "1767843440383_1767843391493.jpg",
+      "originalname": "1767843391493.jpg",
+      "mimetype": "image/jpeg",
+      "size": 85061,
+      "uploadedAt": "2026-01-08T03:37:20.516Z",
+      "category": "resolved",
+      "url": "/api/abnormal-events/20260108-L126-001/files/1767843440383_1767843391493.jpg"
+    }
+  ]
+}
