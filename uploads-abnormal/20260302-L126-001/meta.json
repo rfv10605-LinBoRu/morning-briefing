@@ -1,0 +1,39 @@
+{
+  "id": "9744aeac-0c48-46cb-a5c6-f48aca1e562a",
+  "displayId": "20260302-L126-001",
+  "building": "摩天大樓",
+  "type": "其他事件",
+  "subtype": "警察至大樓辦案",
+  "description": "失主安全帽遺失報警,調閱監視器因夜間往許昌街光南方向畫面過遠因無幫助\n\n已發包計畫更新數位攝影機",
+  "reportedBy": "郭昆霖",
+  "location": "物品遺失6-10",
+  "occurTime": "2026-03-01T00:47",
+  "phenomenon": "失主安全帽遺失報警,調閱監視器因夜間往許昌街光南方向畫面過遠因無幫助",
+  "judgement": "已發包計畫更新數位攝影機",
+  "handling": "",
+  "suggestion": "",
+  "reason": "中控室調閱攝影畫面",
+  "status": "closed",
+  "createdAt": "2026-03-02T00:45:19.279Z",
+  "updatedAt": "2026-03-02T08:23:26.850Z",
+  "files": [
+    {
+      "filename": "1772412319530_94971_0.jpg",
+      "originalname": "94971_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 154728,
+      "uploadedAt": "2026-03-02T00:45:19.623Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260302-L126-001/files/1772412319530_94971_0.jpg"
+    },
+    {
+      "filename": "1772412319906_94970_0.jpg",
+      "originalname": "94970_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 142649,
+      "uploadedAt": "2026-03-02T00:45:19.998Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20260302-L126-001/files/1772412319906_94970_0.jpg"
+    }
+  ]
+}

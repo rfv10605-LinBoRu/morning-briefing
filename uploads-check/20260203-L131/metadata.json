@@ -1,0 +1,32 @@
+{
+  "displayId": "20260203-L131",
+  "zone": "台北南區",
+  "building": "L131",
+  "buildingName": "楊梅大樓",
+  "date": "2026-02-03",
+  "inspector": "林泊儒",
+  "department": "區經理",
+  "createdAt": "2026-03-02T02:44:09.993Z",
+  "issues": [
+    {
+      "id": "issue-1",
+      "description": "廣告貼紙",
+      "photo": "1772419447599-d2kdz9xihf.jpeg"
+    },
+    {
+      "id": "issue-2",
+      "description": "樓梯間雜物",
+      "photo": "1772419448163-7g2ydnh8df8.jpeg"
+    },
+    {
+      "id": "issue-3",
+      "description": "插座上方需處理",
+      "photo": "1772419448622-nymwowotk5q.jpeg"
+    },
+    {
+      "id": "issue-4",
+      "description": "電梯乖乖需清除",
+      "photo": "1772419449764-ingubo0apo.jpeg"
+    }
+  ]
+}
