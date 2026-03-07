@@ -1,0 +1,39 @@
+{
+  "id": "8c35302f-ac30-4cff-9894-387cb7899416",
+  "displayId": "20260303-L171-001",
+  "building": "自強大樓",
+  "type": "大樓災害事件",
+  "subtype": "爆水管",
+  "description": "16:02大樓警衛通知消防廠商安檢，\n該廠商為2F承租戶自行聯繫，\n並未提前先通知大樓服務處。\n16:08警衛通知B1F有漏水情形，\n且消防管無法正常持壓，\n確認為管道間消防管路爆管，\n並將消防泵浦設備切停。",
+  "reportedBy": "孫志偉",
+  "location": "地下室消防機房",
+  "occurTime": "2026-03-02T16:08",
+  "phenomenon": "16:02大樓警衛通知消防廠商安檢，\n該廠商為2F承租戶自行聯繫，\n並未提前先通知大樓服務處。\n16:08警衛通知B1F有漏水情形，\n且消防管無法正常持壓，\n確認為管道間消防管路爆管，\n並將消防泵浦設備切停。",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "消防泵浦爆管",
+  "status": "processing",
+  "createdAt": "2026-03-03T03:02:16.084Z",
+  "updatedAt": "2026-03-03T07:10:20.348Z",
+  "files": [
+    {
+      "filename": "1772506936880_IMG_7010.jpeg",
+      "originalname": "IMG_7010.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 134871,
+      "uploadedAt": "2026-03-03T03:02:17.090Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260303-L171-001/files/1772506936880_IMG_7010.jpeg"
+    },
+    {
+      "filename": "1772506937578_IMG_7009.jpeg",
+      "originalname": "IMG_7009.jpeg",
+      "mimetype": "image/jpeg",
+      "size": 129926,
+      "uploadedAt": "2026-03-03T03:02:17.848Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260303-L171-001/files/1772506937578_IMG_7009.jpeg"
+    }
+  ]
+}
