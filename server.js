@@ -548,7 +548,7 @@ app.get('/stats-data', (req, res) => {
     if (dow >= 1 && dow <= 5) workdayList.push(dateStr);
   }
 
-  let holidayListRaw = ['2025-10-06', '114-10-10', '114-12-12', '114-12-25', '115-01-01', '115-02-16', '115-02-17', '115-02-18', '115-02-19', '115-02-20', '115-02-27'];
+  let holidayListRaw = ['2025-10-06', '115-05-01', '115-04-06', '115-04-03', '115-01-01', '115-02-16', '115-02-17', '115-02-18', '115-02-19', '115-02-20', '115-02-27'];
   if (req.query.holidays) {
     holidayListRaw = holidayListRaw.concat(req.query.holidays.split(',').map(s => s.trim()).filter(Boolean));
   }

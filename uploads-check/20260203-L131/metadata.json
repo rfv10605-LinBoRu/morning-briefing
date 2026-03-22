@@ -11,22 +11,34 @@
     {
       "id": "issue-1",
       "description": "廣告貼紙",
-      "photo": "1772419447599-d2kdz9xihf.jpeg"
+      "photo": "1772419447599-d2kdz9xihf.jpeg",
+      "improvement": "撕除貼紙",
+      "approved": true,
+      "improvePhoto": "issue-1-improve.jpg"
     },
     {
       "id": "issue-2",
       "description": "樓梯間雜物",
-      "photo": "1772419448163-7g2ydnh8df8.jpeg"
+      "photo": "1772419448163-7g2ydnh8df8.jpeg",
+      "improvement": "雜物移除",
+      "approved": true,
+      "improvePhoto": "issue-2-improve.jpg"
     },
     {
       "id": "issue-3",
       "description": "插座上方需處理",
-      "photo": "1772419448622-nymwowotk5q.jpeg"
+      "photo": "1772419448622-nymwowotk5q.jpeg",
+      "improvement": "拆卸微調",
+      "approved": true,
+      "improvePhoto": "issue-3-improve.jpg"
     },
     {
       "id": "issue-4",
       "description": "電梯乖乖需清除",
-      "photo": "1772419449764-ingubo0apo.jpeg"
+      "photo": "1772419449764-ingubo0apo.jpeg",
+      "improvement": "乖乖移除",
+      "approved": true,
+      "improvePhoto": "issue-4-improve.jpg"
     }
   ]
 }
