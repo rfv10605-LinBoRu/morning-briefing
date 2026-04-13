@@ -1,0 +1,48 @@
+{
+  "id": "6fb11ca7-1cf8-4bce-8ad4-225756d63bfd",
+  "displayId": "20260413-L126-001",
+  "building": "摩天大樓",
+  "type": "大樓設備故障",
+  "subtype": "停空調",
+  "description": "設備巡查時發現48樓梯間西排煙設備故障已覓商檢修",
+  "reportedBy": "郭昆霖",
+  "location": "48樓西邊",
+  "occurTime": "2026-04-13T10:15",
+  "phenomenon": "設備巡查時發現48樓梯間西排煙設備故障已覓商檢修",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "梯間排煙設備故障",
+  "status": "processing",
+  "createdAt": "2026-04-13T02:18:52.768Z",
+  "updatedAt": "2026-04-13T03:30:21.124Z",
+  "files": [
+    {
+      "filename": "1776046733139_S__74399787_0.jpg",
+      "originalname": "S__74399787_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 218540,
+      "uploadedAt": "2026-04-13T02:18:53.368Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260413-L126-001/files/1776046733139_S__74399787_0.jpg"
+    },
+    {
+      "filename": "1776046733265_S__74399788_0.jpg",
+      "originalname": "S__74399788_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 244744,
+      "uploadedAt": "2026-04-13T02:18:53.368Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260413-L126-001/files/1776046733265_S__74399788_0.jpg"
+    },
+    {
+      "filename": "1776046733337_S__74399789_0.jpg",
+      "originalname": "S__74399789_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 212126,
+      "uploadedAt": "2026-04-13T02:18:53.368Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260413-L126-001/files/1776046733337_S__74399789_0.jpg"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "bff8065b-9eee-4961-81fd-e281e8181a4d",
+  "displayId": "20260410-L336-001",
+  "building": "前瞻金融",
+  "type": "其他事件",
+  "subtype": "無預警無人辦公",
+  "description": "租約115.06.30才到期\n\n回報公司群組",
+  "reportedBy": "廖維莊",
+  "location": "1號6樓",
+  "occurTime": "2026-04-10T10:26",
+  "phenomenon": "租約115.06.30才到期",
+  "judgement": "",
+  "handling": "回報公司群組",
+  "suggestion": "",
+  "reason": "辦公桌椅及設備已清空，人員不進辦公室",
+  "status": "processing",
+  "createdAt": "2026-04-10T02:30:18.988Z",
+  "updatedAt": "2026-04-10T03:43:03.969Z",
+  "files": [
+    {
+      "filename": "1775788220365_1000044297.jpg",
+      "originalname": "1000044297.jpg",
+      "mimetype": "image/jpeg",
+      "size": 218300,
+      "uploadedAt": "2026-04-10T02:30:20.875Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260410-L336-001/files/1775788220365_1000044297.jpg"
+    },
+    {
+      "filename": "1775788220704_5216b3a1-05fa-46bd-a89f-00f4034838cb-1_all_93020.jpg",
+      "originalname": "5216b3a1-05fa-46bd-a89f-00f4034838cb-1_all_93020.jpg",
+      "mimetype": "image/jpeg",
+      "size": 288792,
+      "uploadedAt": "2026-04-10T02:30:20.875Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260410-L336-001/files/1775788220704_5216b3a1-05fa-46bd-a89f-00f4034838cb-1_all_93020.jpg"
+    }
+  ]
+}

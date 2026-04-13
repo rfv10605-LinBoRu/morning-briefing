@@ -1,0 +1,39 @@
+{
+  "id": "1099c399-9676-4ab3-afd3-9eb6a97fa0d0",
+  "displayId": "20260407-L126-001",
+  "building": "摩天大樓",
+  "type": "其他事件",
+  "subtype": "警察至大樓辦案",
+  "description": "偵辦刑案翻拍",
+  "reportedBy": "郭昆霖",
+  "location": "偵辦刑案6-10",
+  "occurTime": "2026-04-06T14:40",
+  "phenomenon": "偵辦刑案翻拍",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "中控室調閱攝影畫面",
+  "status": "closed",
+  "createdAt": "2026-04-07T05:20:08.040Z",
+  "updatedAt": "2026-04-10T02:20:35.727Z",
+  "files": [
+    {
+      "filename": "1775539208296_98078_0.jpg",
+      "originalname": "98078_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 183150,
+      "uploadedAt": "2026-04-07T05:20:08.560Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260407-L126-001/files/1775539208296_98078_0.jpg"
+    },
+    {
+      "filename": "1775539208789_98079_0.jpg",
+      "originalname": "98079_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 129803,
+      "uploadedAt": "2026-04-07T05:20:09.059Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20260407-L126-001/files/1775539208789_98079_0.jpg"
+    }
+  ]
+}
