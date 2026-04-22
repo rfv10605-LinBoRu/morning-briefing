@@ -235,7 +235,7 @@
     <thead>
       <tr>
         <th>建立時間</th>
-        <th>事件編號</th>
+        <th>事件編號 <span id="eventCount">(0)</span></th>
         <th>大樓</th>
         <th>主類型</th>
         <th>樣型</th>
@@ -369,6 +369,9 @@
           console.error('❌ 查詢事件編號錯誤:', err);
           eventTableBody.innerHTML = `<tr><td colspan="7">❌ 查詢失敗：${err.message}</td></tr>`;
         }
+
+        // ✅ 在這裡更新事件數量
+        document.getElementById('eventCount').textContent = `(${uniqueEvents.length})`;
         return;
       }
 
@@ -431,6 +434,8 @@
     `;
         eventTableBody.appendChild(tr);
       }
+      // ✅ 在這裡更新事件數量
+      document.getElementById('eventCount').textContent = `(${uniqueEvents.length})`;
     }
 
 
@@ -520,6 +525,9 @@
     });
 
     //loadEvents();
+
+  // ✅ 在這裡更新事件數量
+  document.getElementById('eventCount').textContent = `(${uniqueEvents.length})`;
   </script>
 
 
