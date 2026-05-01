@@ -1,0 +1,93 @@
+{
+  "id": "517c42d5-a1bf-416b-9f75-d44ebe869536",
+  "displayId": "20260427-L126-001",
+  "building": "摩天大樓",
+  "type": "大樓設備故障",
+  "subtype": "車場收費、管制系統",
+  "description": "11:02 B3收費停車處遭貨車過高撞擊燈具及消防泡沫頭\n立即派機電同仁前往查看項場狀況及排除已聯絡城市車旅後續報案及損害賠償事宜處理。\n貨車司機為送葛蘭素23樓貨物\n\n由於貨車進入時載重壓低沒問題駛入,卸貨完車輛過高導致過高車輛撞擊設備",
+  "reportedBy": "郭昆霖",
+  "location": "B3收費處",
+  "occurTime": "2026-04-27T11:02",
+  "phenomenon": "11:02 B3收費停車處遭貨車過高撞擊燈具及消防泡沫頭\n立即派機電同仁前往查看項場狀況及排除已聯絡城市車旅後續報案及損害賠償事宜處理。\n貨車司機為送葛蘭素23樓貨物",
+  "judgement": "由於貨車進入時載重壓低沒問題駛入,卸貨完車輛過高導致過高車輛撞擊設備",
+  "handling": "",
+  "suggestion": "",
+  "reason": "停車場B3遭貨車過高撞擊",
+  "status": "closed",
+  "createdAt": "2026-04-27T09:32:32.841Z",
+  "updatedAt": "2026-05-01T15:40:33.319Z",
+  "files": [
+    {
+      "filename": "1777282353529_S__528433170.jpg",
+      "originalname": "S__528433170.jpg",
+      "mimetype": "image/jpeg",
+      "size": 140725,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353529_S__528433170.jpg"
+    },
+    {
+      "filename": "1777282353584_S__528433169.jpg",
+      "originalname": "S__528433169.jpg",
+      "mimetype": "image/jpeg",
+      "size": 324702,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353584_S__528433169.jpg"
+    },
+    {
+      "filename": "1777282353694_S__528433161_0.jpg",
+      "originalname": "S__528433161_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 302783,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353694_S__528433161_0.jpg"
+    },
+    {
+      "filename": "1777282353738_S__528433162_0.jpg",
+      "originalname": "S__528433162_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 275763,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353738_S__528433162_0.jpg"
+    },
+    {
+      "filename": "1777282353769_S__528433163_0.jpg",
+      "originalname": "S__528433163_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 265913,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353769_S__528433163_0.jpg"
+    },
+    {
+      "filename": "1777282353802_S__528433166_0.jpg",
+      "originalname": "S__528433166_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 254993,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353802_S__528433166_0.jpg"
+    },
+    {
+      "filename": "1777282353819_S__528433167_0.jpg",
+      "originalname": "S__528433167_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 316347,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353819_S__528433167_0.jpg"
+    },
+    {
+      "filename": "1777282353837_S__528433168_0.jpg",
+      "originalname": "S__528433168_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 223853,
+      "uploadedAt": "2026-04-27T09:32:33.851Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260427-L126-001/files/1777282353837_S__528433168_0.jpg"
+    }
+  ]
+}

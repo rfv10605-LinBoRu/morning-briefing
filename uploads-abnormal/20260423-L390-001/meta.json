@@ -1,0 +1,39 @@
+{
+  "id": "bf07c580-6b25-4da2-9f73-5cea2cbf9ee3",
+  "displayId": "20260423-L390-001",
+  "building": "竹科大樓",
+  "type": "大樓設備故障",
+  "subtype": "停空調",
+  "description": "C棟冰機1號故障(4/13)\n(嘗試重新開機，持續當機)\nC棟冰機2號電腦故障待料中(3/10)\n\n已通知廠商進場檢查冰機",
+  "reportedBy": "周定麟",
+  "location": "C棟酒店B3冰機房",
+  "occurTime": "2026-03-10T13:00",
+  "phenomenon": "C棟冰機1號故障(4/13)\n(嘗試重新開機，持續當機)\nC棟冰機2號電腦故障待料中(3/10)",
+  "judgement": "已通知廠商進場檢查冰機",
+  "handling": "",
+  "suggestion": "",
+  "reason": "C棟酒店1號、2號冰機故障",
+  "status": "processing",
+  "createdAt": "2026-04-23T06:22:15.322Z",
+  "updatedAt": "2026-04-24T03:22:05.019Z",
+  "files": [
+    {
+      "filename": "1776925336871_1776923909854.jpg",
+      "originalname": "1776923909854.jpg",
+      "mimetype": "image/jpeg",
+      "size": 110191,
+      "uploadedAt": "2026-04-23T06:22:18.275Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260423-L390-001/files/1776925336871_1776923909854.jpg"
+    },
+    {
+      "filename": "1776925337091_1776923933574.jpg",
+      "originalname": "1776923933574.jpg",
+      "mimetype": "image/jpeg",
+      "size": 4059843,
+      "uploadedAt": "2026-04-23T06:22:18.275Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260423-L390-001/files/1776925337091_1776923933574.jpg"
+    }
+  ]
+}

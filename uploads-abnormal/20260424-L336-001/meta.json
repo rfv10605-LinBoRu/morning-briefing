@@ -1,0 +1,57 @@
+{
+  "id": "19dee2e2-906f-451a-87bc-a0cd6c266926",
+  "displayId": "20260424-L336-001",
+  "building": "前瞻金融",
+  "type": "其他事件",
+  "subtype": "警察至大樓辦案",
+  "description": "調閱4/21晚上19：00-20：00畫面，結果未發現有不明人士排徊",
+  "reportedBy": "廖維莊",
+  "location": "7FA戶大門",
+  "occurTime": "2026-04-24T17:25",
+  "phenomenon": "調閱4/21晚上19：00-20：00畫面，結果未發現有不明人士排徊",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "7FA使用戶申請調閱監視畫面",
+  "status": "closed",
+  "createdAt": "2026-04-24T09:33:43.189Z",
+  "updatedAt": "2026-05-01T15:41:27.210Z",
+  "files": [
+    {
+      "filename": "1777023227068_1000044638.jpg",
+      "originalname": "1000044638.jpg",
+      "mimetype": "image/jpeg",
+      "size": 622305,
+      "uploadedAt": "2026-04-24T09:33:47.920Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260424-L336-001/files/1777023227068_1000044638.jpg"
+    },
+    {
+      "filename": "1777023227671_1000044639.jpg",
+      "originalname": "1000044639.jpg",
+      "mimetype": "image/jpeg",
+      "size": 681127,
+      "uploadedAt": "2026-04-24T09:33:47.920Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260424-L336-001/files/1777023227671_1000044639.jpg"
+    },
+    {
+      "filename": "1777023227831_1000044641.jpg",
+      "originalname": "1000044641.jpg",
+      "mimetype": "image/jpeg",
+      "size": 576952,
+      "uploadedAt": "2026-04-24T09:33:47.920Z",
+      "category": "processing",
+      "url": "/api/abnormal-events/20260424-L336-001/files/1777023227831_1000044641.jpg"
+    },
+    {
+      "filename": "1777023229306_1000044652.jpg",
+      "originalname": "1000044652.jpg",
+      "mimetype": "image/jpeg",
+      "size": 496495,
+      "uploadedAt": "2026-04-24T09:33:49.478Z",
+      "category": "general",
+      "url": "/api/abnormal-events/20260424-L336-001/files/1777023229306_1000044652.jpg"
+    }
+  ]
+}

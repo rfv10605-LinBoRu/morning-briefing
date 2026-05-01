@@ -1,0 +1,39 @@
+{
+  "id": "88b64ee0-6b61-432d-91c5-523811700904",
+  "displayId": "20260429-L126-001",
+  "building": "摩天大樓",
+  "type": "其他事件",
+  "subtype": "警察至大樓辦案",
+  "description": "調閱戶外手扶梯翻拍",
+  "reportedBy": "郭昆霖",
+  "location": "B1戶外手扶梯",
+  "occurTime": "2026-04-29T14:46",
+  "phenomenon": "調閱戶外手扶梯翻拍",
+  "judgement": "",
+  "handling": "",
+  "suggestion": "",
+  "reason": "中控室調閱攝影畫面",
+  "status": "closed",
+  "createdAt": "2026-04-29T06:46:51.414Z",
+  "updatedAt": "2026-05-01T15:40:22.570Z",
+  "files": [
+    {
+      "filename": "1777445211742_99888_0.jpg",
+      "originalname": "99888_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 184749,
+      "uploadedAt": "2026-04-29T06:46:51.873Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260429-L126-001/files/1777445211742_99888_0.jpg"
+    },
+    {
+      "filename": "1777445211808_99889_0.jpg",
+      "originalname": "99889_0.jpg",
+      "mimetype": "image/jpeg",
+      "size": 128362,
+      "uploadedAt": "2026-04-29T06:46:51.873Z",
+      "category": "initial",
+      "url": "/api/abnormal-events/20260429-L126-001/files/1777445211808_99889_0.jpg"
+    }
+  ]
+}
